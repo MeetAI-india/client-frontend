@@ -1,0 +1,160 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser } from "../../../stores/authSlice";
+import { toast } from "react-toastify";
+
+import Button from "@/components/Button";
+import { Input, PasswordInput } from "@/components/Input";
+import Label from "@/components/Label";
+import logo from "@/assets/logo.png";
+
+export default function LoginCard() {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const { loading, error } = useSelector((state) => state.auth);
+
+    useEffect(() => {
+        if (!error) return;
+
+        let message = "Something went wrong";
+
+        if (typeof error === "string") {
+            message = error;
+        } else if (error?.detail) {
+            if (error.detail === "Invalid credentials.") {
+                message = "Wrong email or password";
+            } else {
+                message = error.detail;
+            }
+        } else if (error?.message) {
+            message = error.message;
+        }
+
+        toast.error(message, {
+            toastId: "auth-error",
+            autoClose: 3000,
+            hideProgressBar: true,
+            style: {
+                background: "rgba(255,255,255,0.08)",
+                backdropFilter: "blur(30px)",
+                border: "1px solid rgba(255,255,255,0.15)",
+                borderRadius: "1rem",
+                color: "#fff",
+            },
+        });
+    }, [error]);
+
+    const setErr = (msg) => {
+        toast.error(msg, {
+            toastId: "validation-error",
+            autoClose: 3000,
+            hideProgressBar: true,
+        });
+        return false;
+    };
+
+    const validate = () => {
+        if (!email) return setErr("Email is required");
+        if (!/\S+@\S+\.\S+/.test(email)) return setErr("Invalid email");
+        if (!password) return setErr("Password is required");
+        if (password.length < 6) return setErr("Minimum 6 characters required");
+        return true;
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!validate()) return;
+
+        const result = await dispatch(loginUser({ email, password }));
+
+        if (result.meta.requestStatus === "fulfilled") {
+            navigate("/dashboard");
+        }
+    };
+
+    return (
+        <div className="relative flex min-h-screen items-center justify-center px-6 overflow-hidden bg-transparent">
+
+            {/* 🧊 Card — exact pipeline card style */}
+            <div className="
+                relative w-full max-w-md
+                bg-white/[0.08]
+                border border-white/[0.15]
+                rounded-2xl
+                p-6
+                shadow-lg
+                hover:bg-white/[0.12]
+                hover:-translate-y-1
+                transition-all
+                group
+                overflow-hidden
+            ">
+
+                {/* ✨ Same radial gradient overlay as pipeline cards */}
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.05),transparent_70%)] pointer-events-none rounded-2xl" />
+
+                <div className="relative z-10">
+
+                    {/* 🔰 Logo */}
+                    <div className="mb-8 flex justify-center">
+                        <img src={logo} alt="Logo" className="h-12 object-contain opacity-90" />
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+
+                        {/* 📧 Email */}
+                        <div className="flex flex-col gap-2">
+                            <Label className="text-[9px] uppercase tracking-widest font-black text-white/40">
+                                e-mail address
+                            </Label>
+                            <Input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="you@meetai.com"
+                                className="bg-white/[0.08] border border-white/10 rounded-xl py-3"
+                            />
+                        </div>
+
+                        {/* 🔒 Password */}
+                        <div className="flex flex-col gap-2">
+                            <Label className="text-[9px] uppercase tracking-widest font-black text-white/40">
+                                password
+                            </Label>
+                            <PasswordInput
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="••••••••"
+                                className="bg-white/[0.08] border border-white/10 rounded-xl py-3"
+                            />
+                        </div>
+
+                        {/* 🚀 Button — matches pipeline "Add Deal" button style */}
+                        <Button
+                            type="submit"
+                            loading={loading}
+                            disabled={loading}
+                            className="
+                                mt-2 w-full
+                                bg-white text-black
+                                hover:bg-white/90
+                                text-xs font-black uppercase tracking-widest
+                                py-3
+                                rounded-xl
+                                transition-all
+                                active:scale-95
+                            "
+                        >
+                            {loading ? "Authorizing..." : "Initialize Session"}
+                        </Button>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    );
+}
