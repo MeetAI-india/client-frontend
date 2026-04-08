@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
     ArrowLeft, Users, Calendar, Info, CheckCircle,
@@ -9,20 +9,15 @@ import Card from "@/components/Card";
 import Button from "@/components/Button";
 import TabBar from "@/components/TabBar";
 import Badge from "@/components/Badge";
+import { getProject } from "../api/projects";
 
 export default function ProjectDetailPage() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState('Info');
-
-    const project = {
-        name: "MeetAI Dashboard",
-        description: "A comprehensive UI/UX redesign focusing on dark mode aesthetics and AI integration.",
-        status: "Active",
-        progress: 75,
-        velocity: "Fast",
-        budget: "$24,500",
-    };
+    const [activeTab, setActiveTab] = useState("Info");
+    const [project, setProject] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     const team = [
         { id: 1, name: "Alice Freeman", role: "Lead Designer", email: "alice@meet.ai", status: "Active" },
@@ -43,6 +38,69 @@ export default function ProjectDetailPage() {
         { id: 'Meetings', label: 'Meetings', icon: Calendar },
     ];
 
+    useEffect(() => {
+        let mounted = true;
+
+        async function loadProject() {
+            if (!id) {
+                if (mounted) {
+                    setError("Project id is missing.");
+                    setLoading(false);
+                }
+                return;
+            }
+
+            setLoading(true);
+            setError("");
+
+            try {
+                const response = await getProject(id);
+                if (!mounted) return;
+                setProject(response?.data ?? response);
+            } catch (fetchError) {
+                if (!mounted) return;
+                setError(fetchError.message || "Failed to load project.");
+            } finally {
+                if (mounted) setLoading(false);
+            }
+        }
+
+        loadProject();
+        return () => {
+            mounted = false;
+        };
+    }, [id]);
+
+    const uiStatus = useMemo(() => {
+        switch (project?.status) {
+            case "not_started":
+                return "Not Started";
+            case "in_progress":
+                return "In Progress";
+            case "on_hold":
+                return "On Hold";
+            case "completed":
+                return "Completed";
+            case "cancelled":
+                return "Cancelled";
+            default:
+                return project?.status ?? "Unknown";
+        }
+    }, [project?.status]);
+
+    const formattedDeadline = useMemo(() => {
+        if (!project?.deadline) return "No deadline set";
+
+        const parsed = new Date(project.deadline);
+        if (Number.isNaN(parsed.getTime())) return project.deadline;
+
+        return parsed.toLocaleDateString(undefined, {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+        });
+    }, [project?.deadline]);
+
     return (
         <div className="h-full flex flex-col animate-fade-in">
             <header className="mb-8 flex-shrink-0">
@@ -56,10 +114,10 @@ export default function ProjectDetailPage() {
                 <div className="flex justify-between items-start">
                     <div>
                         <h1 className="text-3xl font-black tracking-tight text-white mb-2 underline decoration-white/10 underline-offset-8">
-                            {project.name}
+                            {loading ? "Loading project..." : project?.name ?? "Project"}
                         </h1>
                         <p className="text-white/40 font-medium max-w-xl">
-                            {project.description}
+                            {error || project?.short_description || project?.description || "No project summary available yet."}
                         </p>
                     </div>
                     <Button><Edit size={14} /> Edit Project</Button>
@@ -72,6 +130,16 @@ export default function ProjectDetailPage() {
             </div>
 
             <div className="flex-1 bg-white/[0.03] border border-white/[0.1] rounded-[30px] p-5 transition-colors overflow-y-auto">
+                {loading ? (
+                    <div className="h-full flex items-center justify-center text-white/40 font-bold">
+                        Loading project details...
+                    </div>
+                ) : error ? (
+                    <div className="h-full flex items-center justify-center text-red-400 font-bold">
+                        {error}
+                    </div>
+                ) : (
+                <>
 
                 {activeTab === 'Info' && (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full auto-rows-fr">
@@ -84,39 +152,41 @@ export default function ProjectDetailPage() {
                             <div className="flex-1 flex flex-col justify-center space-y-6">
                                 <div className="flex justify-between items-baseline border-b border-white/5 pb-4">
                                     <span className="text-xs uppercase font-bold text-white/40 tracking-widest">Status</span>
-                                    <span className="text-lg font-black text-white">{project.status}</span>
+                                    <span className="text-lg font-black text-white">{uiStatus}</span>
                                 </div>
                                 <div className="flex justify-between items-baseline border-b border-white/5 pb-4">
-                                    <span className="text-xs uppercase font-bold text-white/40 tracking-widest">Budget Used</span>
-                                    <span className="text-lg font-black text-white">{project.budget}</span>
+                                    <span className="text-xs uppercase font-bold text-white/40 tracking-widest">Project ID</span>
+                                    <span className="text-sm font-black text-white break-all text-right">{project?.id}</span>
+                                </div>
+                                <div className="flex justify-between items-baseline border-b border-white/5 pb-4">
+                                    <span className="text-xs uppercase font-bold text-white/40 tracking-widest">Deadline</span>
+                                    <span className="text-lg font-black text-white text-right">{formattedDeadline}</span>
                                 </div>
                                 <div className="flex justify-between items-baseline">
-                                    <span className="text-xs uppercase font-bold text-white/40 tracking-widest">Velocity</span>
-                                    <span className="text-lg font-black text-white">{project.velocity}</span>
+                                    <span className="text-xs uppercase font-bold text-white/40 tracking-widest">Availability</span>
+                                    <span className="text-lg font-black text-white">{project?.is_active ? "Active" : "Inactive"}</span>
                                 </div>
                             </div>
                         </Card>
 
                         <Card className="flex flex-col p-6 h-full">
                             <div className="flex items-center justify-between mb-6">
-                                <h3 className="font-bold text-white text-lg tracking-tight">Completion</h3>
+                                <h3 className="font-bold text-white text-lg tracking-tight">Project Details</h3>
                                 <CheckCircle size={20} className="text-green-400" />
                             </div>
 
-                            <div className="flex-1 flex flex-col justify-center">
-                                <div className="text-center mb-8">
-                                    <span className="text-6xl font-black text-white">{project.progress}%</span>
+                            <div className="flex-1 flex flex-col justify-start space-y-6">
+                                <div className="space-y-2 border-b border-white/5 pb-4">
+                                    <span className="text-xs uppercase font-bold text-white/40 tracking-widest">Short Description</span>
+                                    <p className="text-sm text-white/80 leading-relaxed">
+                                        {project?.short_description || "No short description available yet."}
+                                    </p>
                                 </div>
 
-                                <div className="space-y-3">
-                                    <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full bg-white rounded-full transition-all duration-500"
-                                            style={{ width: `${project.progress}%` }}
-                                        />
-                                    </div>
-                                    <p className="text-xs text-white/50 text-center mt-2">
-                                        Estimated completion: 2 weeks
+                                <div className="space-y-2">
+                                    <span className="text-xs uppercase font-bold text-white/40 tracking-widest">Description</span>
+                                    <p className="text-sm text-white/70 leading-relaxed whitespace-pre-wrap">
+                                        {project?.description || "No detailed description available yet."}
                                     </p>
                                 </div>
                             </div>
@@ -226,6 +296,8 @@ export default function ProjectDetailPage() {
                             </Card>
                         ))}
                     </div>
+                )}
+                </>
                 )}
             </div>
         </div>

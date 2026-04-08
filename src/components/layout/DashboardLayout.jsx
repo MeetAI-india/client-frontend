@@ -1,5 +1,5 @@
-import React from "react";
-import { Outlet } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { Outlet, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { Bell, Search, User } from "lucide-react";
 
@@ -7,6 +7,14 @@ import Sidebar from "./Sidebar";
 
 export default function DashboardLayout() {
     const user = useSelector((state) => state.auth.user);
+    const location = useLocation();
+    const mainRef = useRef(null);
+
+    useEffect(() => {
+        document.body.style.overflow = "";
+        window.scrollTo({ top: 0, behavior: "auto" });
+        mainRef.current?.scrollTo({ top: 0, behavior: "auto" });
+    }, [location.pathname]);
 
     return (
         <div className="flex h-screen text-white font-sans selection:bg-white/20">
@@ -85,9 +93,9 @@ export default function DashboardLayout() {
                 </header>
 
                 {/* 📄 CONTENT */}
-                <main className="flex-1 overflow-y-auto">
+                <main key={location.pathname} ref={mainRef} className="flex-1 overflow-y-auto">
                     <div className="w-full h-full p-6 lg:p-8">
-                        <Outlet />
+                        <Outlet key={location.pathname} />
                     </div>
                 </main>
 

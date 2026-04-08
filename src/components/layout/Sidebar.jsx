@@ -42,7 +42,7 @@ export default function Sidebar() {
 
     return (
         <aside className={`
-            relative z-20 flex flex-col
+            relative z-50 flex flex-col shrink-0
             bg-white/[0.05]
             border-r border-white/[0.12]
             backdrop-blur-[30px]
@@ -59,7 +59,7 @@ export default function Sidebar() {
 
                 {!isCollapsed && (
                     <span className="ml-3 font-bold text-lg text-white whitespace-nowrap overflow-hidden transition-all duration-500">
-                        Antigravity
+                        MeetAi
                     </span>
                 )}
             </div>
@@ -67,7 +67,8 @@ export default function Sidebar() {
             {/* 🔗 NAV */}
             <nav className="flex-1 py-8 px-3 space-y-3 overflow-y-auto no-scrollbar">
                 {navItems.map((item) => {
-                    const isActive = location.pathname === item.path;
+                    const isActive = location.pathname === item.path ||
+                        (item.path !== '/dashboard' && location.pathname.startsWith(item.path));
 
                     return (
                         <div key={item.name}>

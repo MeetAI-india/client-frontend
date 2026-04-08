@@ -44,16 +44,18 @@ export default function AppRouter() {
                     <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
 
                     {/* Protected Routes */}
-                    <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-                        <Route path="/dashboard" element={<DashboardPage />} />
-                        <Route path="/contacts" element={<ContactsPage />} />
-                        <Route path="/pipeline" element={<PipelinePage />} />
-                        <Route path="/projects" element={<ProjectsPage />} />
-                        <Route path="/projects/:id" element={<ProjectDetailPage />} />
-                        <Route path="/tasks" element={<TasksPage />} />
-                        <Route path="/meetings" element={<MeetingsPage />} />
-                        <Route path="/analytics" element={<AnalyticsPage />} />
-                        <Route path="/settings" element={<SettingsPage />} />
+                    <Route element={<ProtectedRoute />}>
+                        <Route element={<DashboardLayout />}>
+                            <Route path="/dashboard" element={<DashboardPage />} />
+                            <Route path="/contacts" element={<ContactsPage />} />
+                            <Route path="/pipeline" element={<PipelinePage />} />
+                            <Route path="/projects" element={<ProjectsPage />} />
+                            <Route path="/projects/:id" element={<ProjectDetailPage />} />
+                            <Route path="/tasks" element={<TasksPage />} />
+                            <Route path="/meetings" element={<MeetingsPage />} />
+                            <Route path="/analytics" element={<AnalyticsPage />} />
+                            <Route path="/settings" element={<SettingsPage />} />
+                        </Route>
                     </Route>
 
                     {/* Default Redirect */}

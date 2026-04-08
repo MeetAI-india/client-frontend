@@ -17,7 +17,7 @@ export default function DashboardPage() {
                     Overview
                 </h1>
                 <p className="text-white/40 font-medium">
-                    Antigravity CRM - Monitor your pipeline and revenue targets.
+                    MeetAi CRM - Monitor your meetings and project.
                 </p>
             </header>
 

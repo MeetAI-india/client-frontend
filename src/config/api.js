@@ -8,6 +8,7 @@ export const API_CONFIG = {
         REFRESH: "/auth/refresh",
         LOGOUT: "/auth/logout",
         ME: "/auth/me",
+        PROJECTS: "/project",
     },
 
     CSRF_COOKIE_NAME: "csrf_token",
