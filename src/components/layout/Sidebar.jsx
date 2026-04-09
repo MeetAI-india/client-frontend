@@ -37,8 +37,10 @@ export default function Sidebar() {
         { name: "Tasks", path: "/tasks", icon: Clock },
         { name: "Meetings", path: "/meetings", icon: Video },
         { name: "Analytics", path: "/analytics", icon: Activity },
+        { name: "Team", path: "/team", icon: Users },
         { name: "Settings", path: "/settings", icon: Settings },
     ];
+
 
     return (
         <aside className={`

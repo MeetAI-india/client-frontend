@@ -17,6 +17,8 @@ const TasksPage = lazy(() => import("../features/tasks/pages/TasksPage"));
 const MeetingsPage = lazy(() => import("../features/meetings/pages/MeetingsPage"));
 const AnalyticsPage = lazy(() => import("../features/analytics/pages/AnalyticsPage"));
 const SettingsPage = lazy(() => import("../features/settings/pages/SettingsPage"));
+const TeamPage = lazy(() => import("../features/team/pages/TeamPage"));
+
 
 const LoadingFallback = () => (
     <div className="flex h-screen w-full items-center justify-center bg-black">
@@ -54,7 +56,9 @@ export default function AppRouter() {
                             <Route path="/tasks" element={<TasksPage />} />
                             <Route path="/meetings" element={<MeetingsPage />} />
                             <Route path="/analytics" element={<AnalyticsPage />} />
+                            <Route path="/team" element={<TeamPage />} />
                             <Route path="/settings" element={<SettingsPage />} />
+
                         </Route>
                     </Route>
 

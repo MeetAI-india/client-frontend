@@ -8,55 +8,11 @@ import Badge from "@/components/Badge";
 import Modal from "@/components/Modal";
 import Form from "@/components/Form";
 import { createProject, deleteProject, getProjects, updateProject } from "../api/projects";
+import { PROJECT_FIELDS, formatStatusLabel } from "../constants";
 
-// ── Field definitions ────────────────────────────────────────────────────────
-const STATUS_OPTIONS = [
-    { label: "Not Started", value: "not_started" },
-    { label: "In Progress", value: "in_progress" },
-    { label: "On Hold", value: "on_hold" },
-    { label: "Completed", value: "completed" },
-    { label: "Cancelled", value: "cancelled" },
-];
 
-const PROJECT_FIELDS = [
-    {
-        key: "name",
-        type: "text",
-        label: "Project Name",
-        placeholder: "e.g. MeetAI Dashboard Redesign",
-        required: true,
-        col: "left",
-    },
-    {
-        key: "status",
-        type: "dropdown",
-        label: "Status",
-        required: true,
-        options: STATUS_OPTIONS,
-        col: "left",
-    },
-    {
-        key: "short_description",
-        type: "textarea",
-        label: "Short Description",
-        placeholder: "A concise one or two line summary for project cards",
-        rows: 3,
-        col: "left",
-    },
-    {
-        key: "deadline",
-        type: "date",
-        label: "Deadline",
-        col: "left",
-    },
-    {
-        key: "description",
-        type: "markdown",
-        label: "Description",
-        placeholder: "What is this project about? What are the goals?\n\n**Supports** _markdown_",
-        col: "right",
-    },
-];
+
+
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 export default function ProjectsPage() {
@@ -116,22 +72,7 @@ export default function ProjectsPage() {
         };
     }, [openActionMenuId]);
 
-    const formatStatusLabel = (status) => {
-        switch (status) {
-            case "not_started":
-                return "Not Started";
-            case "in_progress":
-                return "In Progress";
-            case "on_hold":
-                return "On Hold";
-            case "completed":
-                return "Completed";
-            case "cancelled":
-                return "Cancelled";
-            default:
-                return status ?? "Unknown";
-        }
-    };
+
 
     const getImportanceFromStatus = (status) => {
         switch (status) {
