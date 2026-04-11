@@ -545,7 +545,8 @@ export default function Form({
     };
 
     const renderField = (f) => {
-        const commonProps = {
+        // Separate key from the props so it doesn't get spread
+        const { key, ...commonProps } = {
             key: f.key,
             label: f.label,
             required: f.required,
@@ -558,33 +559,33 @@ export default function Form({
 
         switch (f.type) {
             case 'markdown':
-                return <MarkdownField {...commonProps} placeholder={f.placeholder} />;
+                return <MarkdownField key={key} {...commonProps} placeholder={f.placeholder} />;
             case 'textarea':
-                return <TextareaField {...commonProps} placeholder={f.placeholder} rows={f.rows} />;
+                return <TextareaField key={key} {...commonProps} placeholder={f.placeholder} rows={f.rows} />;
             case 'dropdown':
-                return <DropdownField {...commonProps} options={f.options} placeholder={f.placeholder} />;
+                return <DropdownField key={key} {...commonProps} options={f.options} placeholder={f.placeholder} />;
             case 'radio':
-                return <RadioField {...commonProps} options={f.options} />;
+                return <RadioField key={key} {...commonProps} options={f.options} />;
             case 'checkbox':
-                return <CheckboxField {...commonProps} value={values[f.key] ?? []} options={f.options} />;
+                return <CheckboxField key={key} {...commonProps} value={values[f.key] ?? []} options={f.options} />;
             case 'checkbox-toggle':
-                return <CheckboxToggle {...commonProps} description={f.description} value={!!values[f.key]} />;
+                return <CheckboxToggle key={key} {...commonProps} description={f.description} value={!!values[f.key]} />;
             case 'url':
-                return <UrlField {...commonProps} placeholder={f.placeholder} />;
+                return <UrlField key={key} {...commonProps} placeholder={f.placeholder} />;
             case 'image':
-                return <FileUploadField {...commonProps} value={values[f.key] ?? []} mode="image" multiple={false} maxSizeMB={f.maxSizeMB} />;
+                return <FileUploadField key={key} {...commonProps} value={values[f.key] ?? []} mode="image" multiple={false} maxSizeMB={f.maxSizeMB} />;
             case 'images':
-                return <FileUploadField {...commonProps} value={values[f.key] ?? []} mode="image" multiple={true} maxFiles={f.maxFiles} maxSizeMB={f.maxSizeMB} />;
+                return <FileUploadField key={key} {...commonProps} value={values[f.key] ?? []} mode="image" multiple={true} maxFiles={f.maxFiles} maxSizeMB={f.maxSizeMB} />;
             case 'document':
-                return <FileUploadField {...commonProps} value={values[f.key] ?? []} mode="document" multiple={false} maxSizeMB={f.maxSizeMB} />;
+                return <FileUploadField key={key} {...commonProps} value={values[f.key] ?? []} mode="document" multiple={false} maxSizeMB={f.maxSizeMB} />;
             case 'documents':
-                return <FileUploadField {...commonProps} value={values[f.key] ?? []} mode="document" multiple={true} maxFiles={f.maxFiles} maxSizeMB={f.maxSizeMB} />;
+                return <FileUploadField key={key} {...commonProps} value={values[f.key] ?? []} mode="document" multiple={true} maxFiles={f.maxFiles} maxSizeMB={f.maxSizeMB} />;
             case 'file':
-                return <FileUploadField {...commonProps} value={values[f.key] ?? []} mode="file" multiple={false} accept={f.accept} maxSizeMB={f.maxSizeMB} />;
+                return <FileUploadField key={key} {...commonProps} value={values[f.key] ?? []} mode="file" multiple={false} accept={f.accept} maxSizeMB={f.maxSizeMB} />;
             case 'files':
-                return <FileUploadField {...commonProps} value={values[f.key] ?? []} mode="file" multiple={true} accept={f.accept} maxFiles={f.maxFiles} maxSizeMB={f.maxSizeMB} />;
+                return <FileUploadField key={key} {...commonProps} value={values[f.key] ?? []} mode="file" multiple={true} accept={f.accept} maxFiles={f.maxFiles} maxSizeMB={f.maxSizeMB} />;
             default:
-                return <TextField {...commonProps} type={f.type ?? 'text'} placeholder={f.placeholder} />;
+                return <TextField key={key} {...commonProps} type={f.type ?? 'text'} placeholder={f.placeholder} />;
         }
     };
 

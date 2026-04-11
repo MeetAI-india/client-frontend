@@ -41,15 +41,15 @@ export async function apiClient(endpoint, options = {}, retry = true) {
     }
 
     const response = await fetch(url, {
-        credentials: "include",
         ...options,
         headers,
+        credentials: "include",
     });
 
     if (response.status === 401 && retry && !isAuthEndpoint) {
         try {
             await refreshToken();
-            return apiClient(endpoint, options, false);
+            return await apiClient(endpoint, options, false);
         } catch (err) {
             throw new Error("Session expired");
         }
@@ -58,7 +58,7 @@ export async function apiClient(endpoint, options = {}, retry = true) {
     const data = await response.json();
 
     if (!response.ok) {
-        throw new Error(data.message || "API Error");
+        throw new Error(data.detail || data.message || "API Error");
     }
 
     return data;

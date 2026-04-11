@@ -6,6 +6,13 @@ export const STATUS_OPTIONS = [
     { label: "Cancelled", value: "cancelled" },
 ];
 
+export const MEMBER_ROLE_OPTIONS = [
+    { label: "Admin", value: "admin" },
+    { label: "Maintainer", value: "maintainer" },
+    { label: "Member", value: "member" },
+    { label: "Viewer", value: "viewer" },
+];
+
 export const PROJECT_FIELDS = [
     {
         key: "name",
@@ -63,3 +70,7 @@ export const formatStatusLabel = (status) => {
     }
 };
 
+export const formatRoleLabel = (role) => {
+    if (!role) return "Unknown";
+    return role.charAt(0).toUpperCase() + role.slice(1).replace(/_/g, " ");
+};
