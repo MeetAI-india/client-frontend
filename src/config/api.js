@@ -9,6 +9,7 @@ export const API_CONFIG = {
         LOGOUT: "/auth/logout",
         ME: "/auth/me",
         PROJECTS: "/project",
+        USERS: "/users",
     },
 
     CSRF_COOKIE_NAME: "csrf_token",

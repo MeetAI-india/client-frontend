@@ -101,3 +101,15 @@ export function changeMemberRole(projectId, userId, payload) {
         body: JSON.stringify(payload),
     });
 }
+
+
+export function searchUsers(query) {
+    const params = new URLSearchParams({
+        search: query,
+        limit: 10,
+        include_deleted: false, // Don't show soft-deleted users
+    });
+    return apiClient(`/users?${params.toString()}`, {
+        method: "GET",
+    });
+}
