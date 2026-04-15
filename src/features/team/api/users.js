@@ -17,7 +17,7 @@ export function getUsers(params = {}) {
     if (params.limit !== undefined) query.append("limit", params.limit);
 
     const queryString = query.toString();
-    const url = `${API_CONFIG.ENDPOINTS.USERS}${queryString ? `?${queryString}` : ""}`;
+    const url = `${API_CONFIG.ENDPOINTS.USERS}/all${queryString ? `?${queryString}` : ""}`;
 
     return apiClient(url, {
         method: "GET",

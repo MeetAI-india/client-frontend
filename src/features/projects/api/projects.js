@@ -103,11 +103,12 @@ export function changeMemberRole(projectId, userId, payload) {
 }
 
 
-export function searchUsers(query) {
+export function searchUsers(query, projectId) {
     const params = new URLSearchParams({
         search: query,
         limit: 10,
-        include_deleted: false, // Don't show soft-deleted users
+        include_deleted: false,
+        project_id: projectId
     });
     return apiClient(`/users?${params.toString()}`, {
         method: "GET",

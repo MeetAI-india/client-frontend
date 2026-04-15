@@ -202,8 +202,8 @@ export default function ProjectDetailPage() {
         return () => document.removeEventListener("mousedown", handleOutsideClick);
     }, [openMemberActionId]);
 
-    // ── Debounced User Search ──────────────────────────────────────────
     useEffect(() => {
+        // If query is empty or a user is already selected, clear results
         if (!userSearchQuery.trim() || selectedUser) {
             setUserSearchResults([]);
             return;
@@ -212,21 +212,38 @@ export default function ProjectDetailPage() {
         const timer = setTimeout(async () => {
             setUserSearchLoading(true);
             try {
-                const res = await searchUsers(userSearchQuery);
-                const users = res?.data?.users || [];
+                const res = await searchUsers(userSearchQuery, id);
 
-                // Filter out users who are already active members in this project
-                const existingMemberIds = new Set(members.map((m) => m.user_id));
-                setUserSearchResults(users.filter((u) => !existingMemberIds.has(u.id)));
+                // 1. Handle Response Structure Safely
+                // API responses can be either { data: { users: [...] } } or { data: [...] }
+                let users = [];
+                if (Array.isArray(res?.data?.users)) {
+                    users = res.data.users;
+                } else if (Array.isArray(res?.data)) {
+                    users = res.data;
+                }
+
+                // 2. Filter out existing members
+                // Convert IDs to Strings to ensure strict equality (handles "1" vs 1 mismatch)
+                const existingMemberIds = new Set(members.map((m) => String(m.user_id)));
+
+                const availableUsers = users.filter((u) => {
+                    const userId = String(u.id); // Ensure we compare string to string
+                    // Return true if the user ID is NOT in the existing members list
+                    return userId && !existingMemberIds.has(userId);
+                });
+
+                setUserSearchResults(availableUsers);
             } catch (err) {
                 console.error("User search failed:", err);
+                setUserSearchResults([]); // Clear results on error
             } finally {
                 setUserSearchLoading(false);
             }
         }, 300); // 300ms debounce
 
         return () => clearTimeout(timer);
-    }, [userSearchQuery, selectedUser, members]);
+    }, [userSearchQuery, selectedUser, members]); // Re-run if members list changes
 
     // ── Close sidebar on Escape ─────────────────────────────────────────
     useEffect(() => {
@@ -530,110 +547,131 @@ export default function ProjectDetailPage() {
                             )}
 
                             {activeTab === "Team" && (
-                                <div className="h-full flex flex-col gap-4">
+                                <div className="h-full flex flex-col gap-0">
                                     {membersError && (
-                                        <div className="text-center py-4 bg-red-500/[0.05] border border-red-500/20 rounded-2xl">
+                                        <div className="text-center py-4 mb-4 bg-red-500/[0.05] border border-red-500/20 rounded-2xl">
                                             <p className="text-red-400 font-bold text-sm">{membersError}</p>
                                         </div>
                                     )}
 
-                                    <div className="flex items-center text-[10px] uppercase font-black tracking-widest text-white/40 border-b border-white/10 pb-3 px-2">
-                                        <div className="w-8"></div>
-                                        <div className="flex-1">Member</div>
-                                        <div className="w-32 hidden md:block">Role</div>
-                                        <div className="w-24 hidden md:block">Status</div>
-                                        <div className="w-28 text-right">Actions</div>
-                                    </div>
-
-                                    {membersLoading ? (
-                                        <div className="flex-1 flex items-center justify-center">
-                                            <p className="text-white/40 font-bold animate-pulse">Loading team...</p>
+                                    {/* ── Table-like container ── */}
+                                    <div className="flex flex-col">
+                                        {/* ── Header ── */}
+                                        <div className="flex items-center px-5 py-3 text-[10px] uppercase font-black tracking-widest text-white/30 border-b border-white/[0.08]">
+                                            <div className="w-10 flex-shrink-0"></div>
+                                            <div className="flex-1 min-w-0 pl-4">Member</div>
+                                            <div className="w-28 flex-shrink-0 hidden md:block text-center">Role</div>
+                                            <div className="w-24 flex-shrink-0 hidden md:flex justify-center">Status</div>
+                                            <div className="w-24 flex-shrink-0 flex justify-end">Actions</div>
                                         </div>
-                                    ) : (
-                                        <>
-                                            {members.map((member) => (
-                                                <Card
-                                                    key={member.id}
-                                                    className={`flex items-center p-4 gap-4 hover:-translate-y-0.5 transition-all cursor-pointer ${selectedMember?.user_id === member.user_id ? "bg-white/[0.06] border-white/20" : ""
-                                                        }`}
-                                                    onClick={() => setSelectedMember(member)}
-                                                >
-                                                    <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-sm font-bold text-white border border-white/10 flex-shrink-0">
-                                                        {member.user_name.charAt(0)}
-                                                    </div>
 
-                                                    <div className="flex-1 min-w-0">
-                                                        <h4 className="font-bold text-white truncate flex items-center gap-2">
-                                                            {member.user_name}
-                                                            {member.user_id === currentUserId && (
-                                                                <span className="text-[9px] font-bold text-white/30 border border-white/10 px-1.5 py-0.5 rounded-md uppercase">You</span>
-                                                            )}
-                                                        </h4>
-                                                        <p className="text-xs text-white/40 truncate">{member.user_email}</p>
-                                                    </div>
+                                        {/* ── Member Rows ── */}
+                                        {membersLoading ? (
+                                            <div className="flex-1 flex items-center justify-center py-16">
+                                                <p className="text-white/40 font-bold animate-pulse">Loading team...</p>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                {members.map((member, index) => (
+                                                    <div
+                                                        key={member.id}
+                                                        onClick={() => setSelectedMember(member)}
+                                                        className={`
+                                flex items-center px-5 py-4 cursor-pointer transition-all duration-200
+                                hover:bg-white/[0.03]
+                                ${selectedMember?.user_id === member.user_id ? "bg-white/[0.06]" : ""}
+                                ${index < members.length - 1 ? "border-b border-white/[0.05]" : ""}
+                            `}
+                                                    >
+                                                        {/* Avatar */}
+                                                        <div className="w-10 h-10 rounded-xl bg-white/[0.08] flex items-center justify-center text-sm font-bold text-white border border-white/[0.08] flex-shrink-0">
+                                                            {member.user_name?.charAt(0)?.toUpperCase() || "?"}
+                                                        </div>
 
-                                                    <div className="w-32 hidden md:block">
-                                                        <span className="text-xs text-white/60 font-medium">{formatRoleLabel(member.role)}</span>
-                                                    </div>
-
-                                                    <div className="w-24 hidden md:flex items-center">
-                                                        <Badge variant={member.is_active ? "success" : "high"}>
-                                                            {member.is_active ? "Active" : "Inactive"}
-                                                        </Badge>
-                                                    </div>
-
-                                                    <div className="w-28 flex items-center justify-end gap-1 flex-shrink-0">
-                                                        <button
-                                                            className="p-2 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors"
-                                                            onClick={(e) => e.stopPropagation()}
-                                                        >
-                                                            <Mail size={16} />
-                                                        </button>
-
-                                                        {canManageMembers && member.user_id !== currentUserId && member.role !== "owner" && (
-                                                            <div className="relative" ref={openMemberActionId === member.user_id ? memberActionRef : null}>
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        setOpenMemberActionId((curr) => (curr === member.user_id ? null : member.user_id));
-                                                                    }}
-                                                                    className="p-2 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors"
-                                                                >
-                                                                    <MoreVertical size={16} />
-                                                                </button>
-
-                                                                {openMemberActionId === member.user_id && (
-                                                                    <div className="absolute right-0 top-12 z-20 min-w-[140px] overflow-hidden rounded-xl border border-white/10 bg-[#161616] shadow-2xl">
-                                                                        <button
-                                                                            onClick={() => openChangeRoleModal(member)}
-                                                                            className="w-full px-4 py-3 text-left text-xs font-bold uppercase tracking-widest text-white/70 transition-colors hover:bg-white/5 hover:text-white flex items-center gap-2"
-                                                                        >
-                                                                            <Shield size={14} /> Change Role
-                                                                        </button>
-                                                                        <button
-                                                                            onClick={() => handleRemoveMember(member)}
-                                                                            className="w-full px-4 py-3 text-left text-xs font-bold uppercase tracking-widest text-red-300 transition-colors hover:bg-red-500/10 hover:text-red-200 flex items-center gap-2"
-                                                                        >
-                                                                            <UserMinus size={14} /> Remove
-                                                                        </button>
-                                                                    </div>
+                                                        {/* Name & Email */}
+                                                        <div className="flex-1 min-w-0 pl-4">
+                                                            <h4 className="font-bold text-white text-sm truncate flex items-center gap-2">
+                                                                {member.user_name}
+                                                                {member.user_id === currentUserId && (
+                                                                    <span className="text-[9px] font-bold text-white/25 border border-white/10 px-1.5 py-0.5 rounded-md uppercase">
+                                                                        You
+                                                                    </span>
                                                                 )}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </Card>
-                                            ))}
+                                                            </h4>
+                                                            <p className="text-xs text-white/35 truncate mt-0.5">{member.user_email}</p>
+                                                        </div>
 
-                                            {canManageMembers && (
-                                                <button
-                                                    onClick={openAddMemberModal}
-                                                    className="w-full mt-2 py-3 border border-dashed border-white/20 rounded-2xl text-white/40 text-xs font-bold uppercase tracking-widest hover:bg-white/[0.05] hover:text-white hover:border-white/40 transition-all flex items-center justify-center gap-2"
-                                                >
-                                                    <Plus size={14} /> Add Team Member
-                                                </button>
-                                            )}
-                                        </>
-                                    )}
+                                                        {/* Role */}
+                                                        <div className="w-28 flex-shrink-0 hidden md:flex items-center justify-center">
+                                                            <span className="text-xs font-semibold text-white/50 uppercase tracking-wider">
+                                                                {formatRoleLabel(member.role)}
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Status */}
+                                                        <div className="w-24 flex-shrink-0 hidden md:flex items-center justify-center">
+                                                            <Badge variant={member.is_active ? "success" : "high"}>
+                                                                {member.is_active ? "Active" : "Inactive"}
+                                                            </Badge>
+                                                        </div>
+
+                                                        {/* Actions */}
+                                                        <div className="w-24 flex-shrink-0 flex items-center justify-end gap-1">
+                                                            <button
+                                                                className="p-2 rounded-lg hover:bg-white/[0.08] text-white/30 hover:text-white transition-colors"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                                title="Send email"
+                                                            >
+                                                                <Mail size={15} />
+                                                            </button>
+
+                                                            {canManageMembers && member.user_id !== currentUserId && member.role !== "owner" && (
+                                                                <div className="relative" ref={openMemberActionId === member.user_id ? memberActionRef : null}>
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            setOpenMemberActionId((curr) => (curr === member.user_id ? null : member.user_id));
+                                                                        }}
+                                                                        className="p-2 rounded-lg hover:bg-white/[0.08] text-white/30 hover:text-white transition-colors"
+                                                                        title="More actions"
+                                                                    >
+                                                                        <MoreVertical size={15} />
+                                                                    </button>
+
+                                                                    {openMemberActionId === member.user_id && (
+                                                                        <div className="absolute right-0 top-11 z-20 min-w-[150px] overflow-hidden rounded-xl border border-white/10 bg-[#141414] shadow-2xl shadow-black/50">
+                                                                            <button
+                                                                                onClick={() => openChangeRoleModal(member)}
+                                                                                className="w-full px-4 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-white/60 transition-colors hover:bg-white/[0.05] hover:text-white flex items-center gap-2.5"
+                                                                            >
+                                                                                <Shield size={13} /> Change Role
+                                                                            </button>
+                                                                            <div className="border-t border-white/[0.06]" />
+                                                                            <button
+                                                                                onClick={() => handleRemoveMember(member)}
+                                                                                className="w-full px-4 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-red-400/80 transition-colors hover:bg-red-500/[0.08] hover:text-red-300 flex items-center gap-2.5"
+                                                                            >
+                                                                                <UserMinus size={13} /> Remove
+                                                                            </button>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))}
+
+                                                {/* {canManageMembers && (
+                                                    <button
+                                                        onClick={openAddMemberModal}
+                                                        className="mt-4 py-3.5 border border-dashed border-white/15 rounded-2xl text-white/30 text-[11px] font-bold uppercase tracking-widest hover:bg-white/[0.03] hover:text-white/60 hover:border-white/30 transition-all flex items-center justify-center gap-2"
+                                                    >
+                                                        <Plus size={14} /> Add Team Member
+                                                    </button>
+                                                )} */}
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
                             )}
 
@@ -698,10 +736,6 @@ export default function ProjectDetailPage() {
                     )}
                 </div>
             </div>
-
-            {/* ══════════════════════════════════════════════════════════════
-                Sidebar + Backdrop — Rendered at root level to prevent clipping
-            ══════════════════════════════════════════════════════════════ */}
 
             {/* ── Backdrop ── */}
             <div
