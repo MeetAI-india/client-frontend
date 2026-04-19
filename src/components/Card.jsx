@@ -1,9 +1,10 @@
 import React from 'react';
 
-export default function Card({ children, className = '', onClick }) {
+export default function Card({ children, className = '', onClick, ...props }) {
     return (
         <div
             onClick={onClick}
+            {...props}
             className={`group relative bg-white/[0.08] border border-white/[0.15] rounded-2xl transition-all shadow-lg overflow-hidden ${className} ${onClick ? 'cursor-pointer hover:bg-white/[0.12]' : ''}`}
         >
             {/* Inner Glow Effect */}

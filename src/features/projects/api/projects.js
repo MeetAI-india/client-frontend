@@ -114,3 +114,24 @@ export function searchUsers(query, projectId) {
         method: "GET",
     });
 }
+
+// ── Member Permissions Endpoints ──────────────────────────────────────────────
+
+export function getMemberPermissions(projectId, userId) {
+    return apiClient(`${API_CONFIG.ENDPOINTS.PROJECTS}/${projectId}/members/${userId}/permissions`, {
+        method: "GET",
+    });
+}
+
+export function updateMemberPermissions(projectId, userId, payload) {
+    return apiClient(`${API_CONFIG.ENDPOINTS.PROJECTS}/${projectId}/members/${userId}/permissions`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+    });
+}
+
+export function deleteMemberPermissions(projectId, userId) {
+    return apiClient(`${API_CONFIG.ENDPOINTS.PROJECTS}/${projectId}/members/${userId}/permissions`, {
+        method: "DELETE",
+    });
+}

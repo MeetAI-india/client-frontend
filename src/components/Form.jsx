@@ -626,7 +626,7 @@ export default function Form({
     };
 
     return (
-        <form onSubmit={handleSubmit} className={`${hasCols ? 'h-full flex flex-col' : 'space-y-5'} ${className}`} noValidate>
+        <form onSubmit={handleSubmit} className={`${hasCols ? 'flex-1 min-h-[400px] flex flex-col' : 'space-y-5'} ${className}`} noValidate>
             {hasCols ? renderTwoCol() : (
                 <>
                     {fields.map(renderField)}

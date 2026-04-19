@@ -15,6 +15,7 @@ const ProjectsPage = lazy(() => import("../features/projects/pages/ProjectsPage"
 const ProjectDetailPage = lazy(() => import("../features/projects/pages/ProjectDetailPage"));
 const TasksPage = lazy(() => import("../features/tasks/pages/TasksPage"));
 const MeetingsPage = lazy(() => import("../features/meetings/pages/MeetingsPage"));
+const MeetingDetailPage = lazy(() => import("../features/meetings/pages/MeetingDetailPage"));
 const AnalyticsPage = lazy(() => import("../features/analytics/pages/AnalyticsPage"));
 const SettingsPage = lazy(() => import("../features/settings/pages/SettingsPage"));
 const TeamPage = lazy(() => import("../features/team/pages/TeamPage"));
@@ -55,6 +56,7 @@ export default function AppRouter() {
                             <Route path="/projects/:id" element={<ProjectDetailPage />} />
                             <Route path="/tasks" element={<TasksPage />} />
                             <Route path="/meetings" element={<MeetingsPage />} />
+                            <Route path="/meetings/:id" element={<MeetingDetailPage />} />
                             <Route path="/analytics" element={<AnalyticsPage />} />
                             <Route path="/team" element={<TeamPage />} />
                             <Route path="/settings" element={<SettingsPage />} />
