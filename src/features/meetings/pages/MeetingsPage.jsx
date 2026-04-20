@@ -1,6 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AlertCircle, Calendar, Globe, LayoutGrid, Lock, Plus, Search, Shield } from "lucide-react";
+import {
+    AlertCircle, Calendar, Globe, LayoutGrid, Lock,
+    MoreVertical, Plus, Search, Shield, Trash2
+} from "lucide-react";
 
 import Badge from "@/components/Badge";
 import Button from "@/components/Button";
@@ -10,7 +13,7 @@ import Form from "@/components/Form";
 import Modal from "@/components/Modal";
 
 import { getProjects } from "../../projects/api/projects";
-import { createMeeting, listProjectMeetings } from "../api/meeting";
+import { createMeeting, deleteMeeting, listProjectMeetings } from "../api/meeting";
 
 const CREATE_MEETING_FIELDS = [
     {
@@ -62,35 +65,26 @@ const CREATE_MEETING_FIELDS = [
 
 function getStatusMeta(status) {
     switch (status) {
-        case "live":
-            return { label: "Live", variant: "success" };
-        case "processing":
-            return { label: "Processing", variant: "high" };
-        case "ready":
-            return { label: "Ready", variant: "default" };
-        case "failed":
-            return { label: "Failed", variant: "critical" };
+        case "live": return { label: "Live", variant: "success" };
+        case "processing": return { label: "Processing", variant: "high" };
+        case "ready": return { label: "Ready", variant: "default" };
+        case "failed": return { label: "Failed", variant: "critical" };
         case "scheduled":
-        default:
-            return { label: "Scheduled", variant: "medium" };
+        default: return { label: "Scheduled", variant: "medium" };
     }
 }
 
 function getVisibilityMeta(visibility) {
     switch (visibility) {
-        case "private":
-            return { label: "Private", variant: "high", icon: Lock };
-        case "restricted":
-            return { label: "Restricted", variant: "medium", icon: Shield };
+        case "private": return { label: "Private", variant: "high", icon: Lock };
+        case "restricted": return { label: "Restricted", variant: "medium", icon: Shield };
         case "public":
-        default:
-            return { label: "Public", variant: "success", icon: Globe };
+        default: return { label: "Public", variant: "success", icon: Globe };
     }
 }
 
 function formatMeetingDate(value) {
     if (!value) return "Not scheduled";
-
     const parsed = new Date(value);
     if (Number.isNaN(parsed.getTime())) return value;
 
@@ -111,6 +105,13 @@ function normalizeCreatePayload(values) {
         scheduled_at: values.scheduled_at ? new Date(values.scheduled_at).toISOString() : null,
         visibility: values.visibility || "public",
     };
+}
+
+// Helper to truncate text to letter count
+function truncateText(text, limit) {
+    if (!text) return "";
+    if (text.length <= limit) return text;
+    return text.slice(0, limit) + "...";
 }
 
 export default function MeetingsPage() {
@@ -138,6 +139,11 @@ export default function MeetingsPage() {
     });
     const [formLoading, setFormLoading] = useState(false);
     const [serverErrors, setServerErrors] = useState({});
+
+    const actionMenuRef = useRef(null);
+    const [openActionMenuId, setOpenActionMenuId] = useState(null);
+
+    // ── Load Projects ────────────────────────────────────────────────────
 
     useEffect(() => {
         let mounted = true;
@@ -168,10 +174,10 @@ export default function MeetingsPage() {
         }
 
         loadProjects();
-        return () => {
-            mounted = false;
-        };
+        return () => { mounted = false; };
     }, []);
+
+    // ── Load Meetings ─────────────────────────────────────────────────────
 
     useEffect(() => {
         let mounted = true;
@@ -235,10 +241,25 @@ export default function MeetingsPage() {
         }
 
         loadMeetings();
-        return () => {
-            mounted = false;
-        };
+        return () => { mounted = false; };
     }, [projects, projectsLoading, selectedProjectId]);
+
+    // ── Dropdown / Outside Click ───────────────────────────────────────────
+
+    useEffect(() => {
+        if (!openActionMenuId) return;
+
+        const handleOutsideClick = (event) => {
+            if (!actionMenuRef.current?.contains(event.target)) {
+                setOpenActionMenuId(null);
+            }
+        };
+
+        document.addEventListener("mousedown", handleOutsideClick);
+        return () => document.removeEventListener("mousedown", handleOutsideClick);
+    }, [openActionMenuId]);
+
+    // ── Derived Data ─────────────────────────────────────────────────────
 
     const projectOptions = useMemo(() => ([
         { value: "all", label: "All Projects" },
@@ -282,6 +303,8 @@ export default function MeetingsPage() {
         if (selectedProjectId === "all") return "All Projects";
         return projects.find((project) => project.id === selectedProjectId)?.name || "Project";
     }, [projects, selectedProjectId]);
+
+    // ── Actions ─────────────────────────────────────────────────────────
 
     const openCreateModal = () => {
         setServerErrors({});
@@ -352,157 +375,185 @@ export default function MeetingsPage() {
         });
     };
 
+    const handleDeleteMeeting = async (meeting) => {
+        const confirmed = window.confirm(`Permanently delete session "${meeting.title}"?`);
+        if (!confirmed) return;
+
+        try {
+            await deleteMeeting(meeting.project_id, meeting.id);
+            setMeetings((prev) => prev.filter((m) => m.id !== meeting.id));
+            setOpenActionMenuId(null);
+        } catch (err) {
+            alert(err.message || "Failed to delete meeting.");
+        }
+    };
+
     return (
         <>
             <div className="space-y-8 animate-fade-in">
-                <header className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-                    <div>
-                        <h1 className="mb-2 text-3xl font-black tracking-tight text-white underline decoration-white/10 underline-offset-8">
+                {/* Header */}
+                <header className="mb-8">
+                    <div className="flex justify-between items-center mb-2">
+                        <h1 className="text-3xl font-black tracking-tight text-white underline decoration-white/10 underline-offset-8">
                             Meetings
                         </h1>
-                        <p className="max-w-2xl text-white/40 font-medium">
-                            Browse scheduled sessions across your projects, open meeting details, and create new meetings with the backend access policy built in.
+                        <Button onClick={openCreateModal} disabled={projectsLoading || projects.length === 0}>
+                            <Plus size={14} /> New Meeting
+                        </Button>
+                    </div>
+                    <p className="text-white/40 font-medium">
+                        Browse scheduled sessions across your projects, open meeting details, and create new meetings with the backend access policy built in.
+                    </p>
+                </header>
+
+                {/* Controls */}
+                <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <h2 className="text-lg font-black tracking-tight text-white">Session Registry</h2>
+                        <p className="mt-1 text-sm text-white/35">
+                            {selectedProjectId === "all"
+                                ? "Combined view across all accessible projects."
+                                : `Currently showing meetings for ${activeProjectName}.`}
                         </p>
                     </div>
 
-                    <Button onClick={openCreateModal} disabled={projectsLoading || projects.length === 0}>
-                        <Plus size={14} /> New Meeting
-                    </Button>
-                </header>
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center">
+                        <Dropdown
+                            label="Filter by Project"
+                            options={projectOptions}
+                            value={selectedProjectId}
+                            onChange={setSelectedProjectId}
+                        />
 
-                <div className="rounded-[30px] border border-white/[0.1] bg-white/[0.03] p-5 transition-colors">
-                    <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                        <div>
-                            <h2 className="text-lg font-black tracking-tight text-white">Session Registry</h2>
-                            <p className="mt-1 text-sm text-white/35">
-                                {selectedProjectId === "all"
-                                    ? "Combined view across all accessible projects."
-                                    : `Currently showing meetings for ${activeProjectName}.`}
-                            </p>
-                        </div>
-
-                        <div className="flex flex-col gap-3 md:flex-row md:items-center">
-                            <Dropdown
-                                label="Filter by Project"
-                                options={projectOptions}
-                                value={selectedProjectId}
-                                onChange={setSelectedProjectId}
+                        <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 transition-all focus-within:border-white/20">
+                            <Search size={14} className="text-white/30" />
+                            <input
+                                type="text"
+                                placeholder="Search meetings..."
+                                value={searchQuery}
+                                onChange={(event) => setSearchQuery(event.target.value)}
+                                className="w-40 bg-transparent text-sm font-bold text-white/70 placeholder:text-white/20 focus:outline-none md:w-56"
                             />
-
-                            <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 transition-all focus-within:border-white/20">
-                                <Search size={14} className="text-white/30" />
-                                <input
-                                    type="text"
-                                    placeholder="Search meetings..."
-                                    value={searchQuery}
-                                    onChange={(event) => setSearchQuery(event.target.value)}
-                                    className="w-40 bg-transparent text-sm font-bold text-white/70 placeholder:text-white/20 focus:outline-none md:w-56"
-                                />
-                            </div>
                         </div>
                     </div>
-
-                    {projectsError ? (
-                        <div className="flex items-start gap-3 rounded-2xl border border-red-500/20 bg-red-500/[0.08] p-4 text-red-300">
-                            <AlertCircle size={18} className="mt-0.5 flex-shrink-0" />
-                            <div>
-                                <p className="text-sm font-bold">Could not load your projects.</p>
-                                <p className="mt-1 text-xs text-red-300/80">{projectsError}</p>
-                            </div>
-                        </div>
-                    ) : meetingsError ? (
-                        <div className="flex items-start gap-3 rounded-2xl border border-red-500/20 bg-red-500/[0.08] p-4 text-red-300">
-                            <AlertCircle size={18} className="mt-0.5 flex-shrink-0" />
-                            <div>
-                                <p className="text-sm font-bold">Could not load meetings.</p>
-                                <p className="mt-1 text-xs text-red-300/80">{meetingsError}</p>
-                            </div>
-                        </div>
-                    ) : meetingsLoading || projectsLoading ? (
-                        <div className="flex flex-col items-center justify-center py-20 text-white/40">
-                            <LayoutGrid className="mb-3 animate-pulse" size={32} />
-                            <span className="text-xs font-bold uppercase tracking-widest">Loading meetings...</span>
-                        </div>
-                    ) : filteredMeetings.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-16 text-center">
-                            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03]">
-                                <Calendar size={28} className="text-white/20" />
-                            </div>
-                            <h3 className="text-white font-bold">No meetings found</h3>
-                            <p className="mt-1 max-w-sm text-sm text-white/30">
-                                {projects.length === 0
-                                    ? "You need access to at least one project before you can create or browse meetings."
-                                    : "Try another project filter or search term, or create a new meeting to get started."}
-                            </p>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-                            {filteredMeetings.map((meeting) => {
-                                const statusMeta = getStatusMeta(meeting.status);
-                                const visibilityMeta = getVisibilityMeta(meeting.access_policy?.visibility);
-                                const VisibilityIcon = visibilityMeta.icon;
-
-                                return (
-                                    <Card
-                                        key={meeting.id}
-                                        role="button"
-                                        tabIndex={0}
-                                        onClick={() => openMeeting(meeting)}
-                                        onKeyDown={(event) => {
-                                            if (event.key === "Enter" || event.key === " ") {
-                                                event.preventDefault();
-                                                openMeeting(meeting);
-                                            }
-                                        }}
-                                        className="border-white/5 bg-white/[0.02] p-5 transition-all duration-200 hover:border-white/20 hover:bg-white/[0.05]"
-                                    >
-                                        <div className="flex h-full flex-col gap-5">
-                                            <div className="flex items-start justify-between gap-4">
-                                                <div className="min-w-0">
-                                                    <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-white/30">
-                                                        {meeting.project_name || "Project"}
-                                                    </p>
-                                                    <h3 className="truncate text-lg font-black tracking-tight text-white">
-                                                        {meeting.title}
-                                                    </h3>
-                                                    <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-white/45">
-                                                        {meeting.description || "No description or agenda provided yet."}
-                                                    </p>
-                                                </div>
-
-                                                <div className="flex flex-col items-end gap-2">
-                                                    <Badge variant={statusMeta.variant}>{statusMeta.label}</Badge>
-                                                    <Badge variant={visibilityMeta.variant} className="inline-flex items-center gap-1">
-                                                        <VisibilityIcon size={10} />
-                                                        {visibilityMeta.label}
-                                                    </Badge>
-                                                </div>
-                                            </div>
-
-                                            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                                                <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-4">
-                                                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/30">Scheduled</p>
-                                                    <p className="mt-2 text-sm font-medium text-white/80">
-                                                        {formatMeetingDate(meeting.scheduled_at)}
-                                                    </p>
-                                                </div>
-
-                                                <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-4">
-                                                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/30">Access</p>
-                                                    <p className="mt-2 text-sm font-medium text-white/80">
-                                                        {meeting.access_level === "metadata_only" ? "Metadata only" : "Full details"}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </Card>
-                                );
-                            })}
-                        </div>
-                    )}
                 </div>
+
+                {/* Grid */}
+                {(projectsLoading || meetingsLoading) ? (
+                    <div className="text-center py-20 bg-white/[0.03] border border-white/10 rounded-[30px]">
+                        <LayoutGrid size={32} className="mx-auto text-white/20 mb-4 animate-pulse" />
+                        <p className="text-white/40 font-bold">Loading meetings...</p>
+                    </div>
+                ) : (projectsError || meetingsError) ? (
+                    <div className="text-center py-20 bg-white/[0.03] border border-red-500/20 rounded-[30px]">
+                        <AlertCircle size={32} className="mx-auto text-red-400/70 mb-4" />
+                        <p className="text-red-400 font-bold">{projectsError || meetingsError}</p>
+                    </div>
+                ) : filteredMeetings.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filteredMeetings.map((meeting) => {
+                            const statusMeta = getStatusMeta(meeting.status);
+                            const visibilityMeta = getVisibilityMeta(meeting.access_policy?.visibility);
+                            const VisibilityIcon = visibilityMeta.icon;
+
+                            return (
+                                <Card
+                                    key={meeting.id}
+                                    onClick={() => openMeeting(meeting)}
+                                    onKeyDown={(event) => {
+                                        if (event.key === "Enter" || event.key === " ") {
+                                            event.preventDefault();
+                                            openMeeting(meeting);
+                                        }
+                                    }}
+                                    className="flex flex-col p-5 hover:-translate-y-1 cursor-pointer transition-all duration-200"
+                                >
+                                    {/* Top Row: Icon + Menu */}
+                                    <div className="flex items-center justify-between mb-6">
+                                        <div className="w-12 h-12 bg-white/[0.08] border border-white/10 rounded-2xl flex items-center justify-center">
+                                            <Calendar size={22} className="text-white" />
+                                        </div>
+
+                                        <div className="relative" ref={openActionMenuId === meeting.id ? actionMenuRef : null}>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setOpenActionMenuId((curr) => (curr === meeting.id ? null : meeting.id));
+                                                }}
+                                                className="text-white/40 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"
+                                            >
+                                                <MoreVertical size={18} />
+                                            </button>
+
+                                            {openActionMenuId === meeting.id && (
+                                                <div className="absolute right-0 top-12 z-20 min-w-[140px] overflow-hidden rounded-xl border border-white/10 bg-[#161616] shadow-2xl">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleDeleteMeeting(meeting);
+                                                        }}
+                                                        className="w-full px-4 py-3 text-left text-xs font-bold uppercase tracking-widest text-red-300 transition-colors hover:bg-red-500/10 hover:text-red-200"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Content */}
+                                    <div className="flex-1 mb-4">
+                                        <h3 className="font-bold text-white mb-1 leading-tight">
+                                            {meeting.title}
+                                        </h3>
+                                        <p className="text-[10px] uppercase font-bold text-white/30 mb-2 tracking-wider">
+                                            {meeting.project_name || "Project"}
+                                        </p>
+                                        <p className="text-sm text-white/50 leading-relaxed">
+                                            {truncateText(meeting.description, 80) || "No description or agenda provided yet."}
+                                        </p>
+                                    </div>
+
+                                    {/* Footer: Badges (Side by Side) | Time (Right) */}
+                                    <div className="pt-3 border-t border-white/10 flex justify-between items-center">
+                                        <div className="flex items-center gap-2">
+                                            <Badge variant={statusMeta.variant} className="whitespace-nowrap">
+                                                {statusMeta.label}
+                                            </Badge>
+                                            <Badge
+                                                variant={visibilityMeta.variant}
+                                                className="inline-flex items-center gap-1 whitespace-nowrap"
+                                            >
+                                                <VisibilityIcon size={10} />
+                                                {visibilityMeta.label}
+                                            </Badge>
+                                        </div>
+
+                                        <div className="text-right">
+                                            <div className="flex items-center gap-1 text-white/60">
+                                                <Calendar size={12} />
+                                                <span className="text-xs font-bold text-white/60">
+                                                    {formatMeetingDate(meeting.scheduled_at)}
+                                                </span>
+                                            </div>
+                                            <p className="text-[10px] uppercase text-white/30 mt-1">
+                                                {meeting.access_level === "metadata_only" ? "Metadata only" : "Full details"}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </Card>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <div className="text-center py-20 bg-white/[0.03] border border-white/10 rounded-[30px]">
+                        <LayoutGrid size={32} className="mx-auto text-white/20 mb-4" />
+                        <p className="text-white/40 font-bold">No meetings found</p>
+                    </div>
+                )}
             </div>
 
+            {/* Create Modal */}
             <Modal
                 isOpen={modalOpen}
                 onClose={closeCreateModal}

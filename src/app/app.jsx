@@ -18,7 +18,7 @@ export default function App() {
             {/* 🌌 GLOBAL BACKGROUND */}
             <div className="fixed inset-0 -z-50 pointer-events-none">
                 <div className="absolute inset-0 bg-[#050505]" />
-                <div className="absolute inset-0 bg-[url('/bg_img.jpg')] bg-cover bg-center opacity-15" />
+                <div className="absolute inset-0 bg-[url('/bg_img.jpg')] bg-cover bg-center opacity-5" />
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_0%,rgba(255,255,255,0.06),transparent_40%)]" />
                 <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay bg-[url('/noise.png')]" />
             </div>

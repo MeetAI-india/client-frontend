@@ -4,9 +4,10 @@ import React, {
     useEffect,
     useImperativeHandle,
     useMemo,
+    useRef,
     useState,
 } from "react";
-import { AlertCircle, Calendar, Globe, LayoutGrid, Lock, Plus, Search, Shield } from "lucide-react";
+import { AlertCircle, Calendar, Globe, LayoutGrid, Lock, MoreVertical, Plus, Search, Shield, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import Badge from "@/components/Badge";
@@ -17,7 +18,7 @@ import Form from "@/components/Form";
 import Modal from "@/components/Modal";
 
 import { getProjects } from "../../projects/api/projects";
-import { createMeeting, listProjectMeetings } from "../api/meeting";
+import { createMeeting, deleteMeeting, listProjectMeetings } from "../api/meeting";
 
 const CREATE_MEETING_FIELDS = [
     {
@@ -144,6 +145,9 @@ const MeetingsTab = forwardRef(function MeetingsTab({ projectId, projectName }, 
     const [formLoading, setFormLoading] = useState(false);
     const [serverErrors, setServerErrors] = useState({});
 
+    const actionMenuRef = useRef(null);
+    const [openActionMenuId, setOpenActionMenuId] = useState(null);
+
     const openCreateModal = useCallback(() => {
         const defaultProjectId = projectId || selectedProjectId || projects[0]?.id || "";
         setServerErrors({});
@@ -203,6 +207,19 @@ const MeetingsTab = forwardRef(function MeetingsTab({ projectId, projectName }, 
             mounted = false;
         };
     }, [projectId]);
+
+    useEffect(() => {
+        if (!openActionMenuId) return;
+
+        const handleOutsideClick = (event) => {
+            if (!actionMenuRef.current?.contains(event.target)) {
+                setOpenActionMenuId(null);
+            }
+        };
+
+        document.addEventListener("mousedown", handleOutsideClick);
+        return () => document.removeEventListener("mousedown", handleOutsideClick);
+    }, [openActionMenuId]);
 
     useEffect(() => {
         let mounted = true;
@@ -352,6 +369,19 @@ const MeetingsTab = forwardRef(function MeetingsTab({ projectId, projectName }, 
         });
     };
 
+    const handleDeleteMeeting = async (meeting) => {
+        const confirmed = window.confirm(`Permanently delete session "${meeting.title}"?`);
+        if (!confirmed) return;
+
+        try {
+            await deleteMeeting(meeting.project_id, meeting.id);
+            setMeetings((prev) => prev.filter((m) => m.id !== meeting.id));
+            setOpenActionMenuId(null);
+        } catch (err) {
+            alert(err.message || "Failed to delete meeting.");
+        }
+    };
+
     return (
         <>
             <div className="h-full flex flex-col min-h-[400px]">
@@ -470,6 +500,32 @@ const MeetingsTab = forwardRef(function MeetingsTab({ projectId, projectName }, 
                                             <Badge variant={statusMeta.variant}>
                                                 {statusMeta.label}
                                             </Badge>
+
+                                            <div className="relative" ref={openActionMenuId === meeting.id ? actionMenuRef : null}>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setOpenActionMenuId((curr) => (curr === meeting.id ? null : meeting.id));
+                                                    }}
+                                                    className="p-2 rounded-lg hover:bg-white/[0.08] text-white/30 hover:text-white transition-colors"
+                                                >
+                                                    <MoreVertical size={16} />
+                                                </button>
+
+                                                {openActionMenuId === meeting.id && (
+                                                    <div className="absolute right-0 top-11 z-20 min-w-[140px] rounded-xl border border-white/10 bg-[#141414] shadow-2xl overflow-hidden">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDeleteMeeting(meeting);
+                                                            }}
+                                                            className="w-full px-4 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-red-400 hover:bg-red-500/[0.08] hover:text-red-300 flex items-center gap-2.5"
+                                                        >
+                                                            <Trash2 size={13} /> Delete
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </Card>
                                 );
