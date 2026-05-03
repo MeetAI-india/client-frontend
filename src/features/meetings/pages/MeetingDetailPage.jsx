@@ -13,7 +13,9 @@ import {
     Info,
     Link as LinkIcon,
     Lock,
+    Play, // Added for Start button
     Shield,
+    Square, // Added for End button
     Users,
 } from "lucide-react";
 
@@ -25,136 +27,24 @@ import Modal from "@/components/Modal";
 import TabBar from "@/components/TabBar";
 
 import { getProjects } from "../../projects/api/projects";
-import { getMeeting, listParticipants, listProjectMeetings, updateMeeting } from "../api/meeting";
+import {
+    getMeeting,
+    listParticipants,
+    updateMeeting,
+    updateMeetingPolicy,
+    startRecording, // Added API function
+    stopRecording,  // Added API function
+} from "../api/meeting";
 
-const EDIT_MEETING_FIELDS = [
-    {
-        key: "title",
-        label: "Meeting Title",
-        type: "text",
-        placeholder: "e.g. Q4 strategy sync",
-        required: true,
-    },
-    {
-        key: "scheduled_at",
-        label: "Scheduled Time",
-        type: "datetime-local",
-        placeholder: "Choose a date and time",
-    },
-    {
-        key: "meeting_url",
-        label: "Meeting URL",
-        type: "url",
-        placeholder: "https://meet.example.com/room",
-    },
-    {
-        key: "description",
-        label: "Description / Agenda",
-        type: "textarea",
-        rows: 4,
-        placeholder: "Add agenda notes, context, or goals for this meeting...",
-    },
-];
-
-function getStatusMeta(status) {
-    switch (status) {
-        case "live":
-            return { label: "Live", variant: "success" };
-        case "processing":
-            return { label: "Processing", variant: "high" };
-        case "ready":
-            return { label: "Ready", variant: "default" };
-        case "failed":
-            return { label: "Failed", variant: "critical" };
-        case "scheduled":
-        default:
-            return { label: "Scheduled", variant: "medium" };
-    }
-}
-
-function getVisibilityMeta(visibility) {
-    switch (visibility) {
-        case "private":
-            return { label: "Private", variant: "high", icon: Lock };
-        case "restricted":
-            return { label: "Restricted", variant: "medium", icon: Shield };
-        case "public":
-        default:
-            return { label: "Public", variant: "success", icon: Globe };
-    }
-}
-
-function getParticipantRoleMeta(role) {
-    switch (role) {
-        case "editor":
-            return { label: "Editor", variant: "success" };
-        case "commenter":
-            return { label: "Commenter", variant: "medium" };
-        case "viewer":
-        default:
-            return { label: "Viewer", variant: "default" };
-    }
-}
-
-function formatDateTime(value, fallback = "Not scheduled") {
-    if (!value) return fallback;
-
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) return value;
-
-    return parsed.toLocaleString(undefined, {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-    });
-}
-
-function toDateTimeLocalValue(value) {
-    if (!value) return "";
-
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) return "";
-
-    const year = parsed.getFullYear();
-    const month = String(parsed.getMonth() + 1).padStart(2, "0");
-    const day = String(parsed.getDate()).padStart(2, "0");
-    const hours = String(parsed.getHours()).padStart(2, "0");
-    const minutes = String(parsed.getMinutes()).padStart(2, "0");
-
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-}
-
-async function resolveMeetingProject(meetingId) {
-    const projectsResponse = await getProjects();
-    const projects = Array.isArray(projectsResponse?.data) ? projectsResponse.data : [];
-
-    const results = await Promise.allSettled(
-        projects.map(async (project) => {
-            const response = await listProjectMeetings(project.id);
-            const meetings = Array.isArray(response?.data?.meetings) ? response.data.meetings : [];
-            return {
-                project,
-                foundMeeting: meetings.find((meeting) => meeting.id === meetingId) || null,
-            };
-        })
-    );
-
-    for (const result of results) {
-        if (result.status !== "fulfilled") continue;
-        if (!result.value.foundMeeting) continue;
-
-        return {
-            projectId: result.value.project.id,
-            projectName: result.value.project.name,
-            meeting: result.value.foundMeeting,
-        };
-    }
-
-    return null;
-}
+import {
+    EDIT_MEETING_FIELDS,
+    getStatusMeta,
+    getVisibilityMeta,
+    getParticipantRoleMeta,
+    formatDateTime,
+    toDateTimeLocalValue,
+    resolveMeetingProject
+} from "../constants";
 
 export default function MeetingDetailPage() {
     const { id } = useParams();
@@ -169,6 +59,7 @@ export default function MeetingDetailPage() {
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [actionLoading, setActionLoading] = useState(false); // For Start/End buttons
     const [participantsLoading, setParticipantsLoading] = useState(false);
     const [participantsError, setParticipantsError] = useState("");
 
@@ -208,14 +99,33 @@ export default function MeetingDetailPage() {
                 let resolvedMeetingPreview = null;
 
                 if (!resolvedProjectId) {
-                    const resolved = await resolveMeetingProject(id);
-                    if (!resolved) {
-                        throw new Error("Could not resolve the parent project for this meeting.");
+                    const projectsResponse = await getProjects();
+                    const projects = Array.isArray(projectsResponse?.data) ? projectsResponse.data : [];
+
+                    const results = await Promise.allSettled(
+                        projects.map(async (project) => {
+                            const response = await fetch(`/api/projects/${project.id}/meetings`);
+                            const data = await response.json();
+                            const meetings = Array.isArray(data?.meetings) ? data.meetings : [];
+                            return {
+                                project,
+                                foundMeeting: meetings.find((meeting) => meeting.id === id) || null,
+                            };
+                        })
+                    );
+
+                    for (const result of results) {
+                        if (result.status !== "fulfilled") continue;
+                        if (!result.value.foundMeeting) continue;
+                        resolvedProjectId = result.value.project.id;
+                        resolvedProjectName = result.value.project.name;
+                        resolvedMeetingPreview = result.value.foundMeeting;
+                        break;
                     }
 
-                    resolvedProjectId = resolved.projectId;
-                    resolvedProjectName = resolved.projectName;
-                    resolvedMeetingPreview = resolved.meeting;
+                    if (!resolvedProjectId) {
+                        throw new Error("Could not resolve the parent project for this meeting.");
+                    }
                 }
 
                 const response = await getMeeting(resolvedProjectId, id);
@@ -269,14 +179,51 @@ export default function MeetingDetailPage() {
     );
     const VisibilityIcon = visibilityMeta.icon;
 
+    // --- Handlers for Start/End Meeting ---
+
+    const handlestartRecording = async () => {
+        if (!meeting || !projectId) return;
+        setActionLoading(true);
+        try {
+            await startRecording(projectId, meeting.id);
+            // API returns {}, so we refetch to get the updated status
+            const response = await getMeeting(projectId, meeting.id);
+            setMeeting(response?.data ?? response);
+        } catch (err) {
+            console.error("Failed to start meeting", err);
+            alert("Failed to start recording. Please check permissions.");
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleEndMeeting = async () => {
+        if (!meeting || !projectId) return;
+        setActionLoading(true);
+        try {
+            await stopRecording(projectId, meeting.id);
+            // API returns {}, so we refetch to get the updated status
+            const response = await getMeeting(projectId, meeting.id);
+            setMeeting(response?.data ?? response);
+        } catch (err) {
+            console.error("Failed to end meeting", err);
+            alert("Failed to stop recording. Please check permissions.");
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
     const openEditModal = () => {
         if (!meeting) return;
-
         setFormValues({
             title: meeting.title ?? "",
             scheduled_at: toDateTimeLocalValue(meeting.scheduled_at),
             meeting_url: meeting.meeting_url ?? "",
             description: meeting.description ?? "",
+            visibility: meeting.access_policy?.visibility ?? "public",
+            gate_recording: meeting.access_policy?.gate_recording ?? false,
+            gate_transcript: meeting.access_policy?.gate_transcript ?? false,
+            gate_summary: meeting.access_policy?.gate_summary ?? false,
         });
         setServerErrors({});
         setModalOpen(true);
@@ -302,31 +249,52 @@ export default function MeetingDetailPage() {
         setServerErrors({});
 
         try {
-            const payload = {};
-
+            const meetingPayload = {};
             const nextTitle = values.title.trim();
             const nextDescription = values.description?.trim() || null;
             const nextMeetingUrl = values.meeting_url?.trim() || null;
             const nextScheduledAt = values.scheduled_at ? new Date(values.scheduled_at).toISOString() : null;
 
-            if (nextTitle !== (meeting.title ?? "")) payload.title = nextTitle;
-            if (nextDescription !== (meeting.description ?? null)) payload.description = nextDescription;
-            if (nextMeetingUrl !== (meeting.meeting_url ?? null)) payload.meeting_url = nextMeetingUrl;
-            if (nextScheduledAt !== (meeting.scheduled_at ?? null)) payload.scheduled_at = nextScheduledAt;
+            if (nextTitle !== (meeting.title ?? "")) meetingPayload.title = nextTitle;
+            if (nextDescription !== (meeting.description ?? null)) meetingPayload.description = nextDescription;
+            if (nextMeetingUrl !== (meeting.meeting_url ?? null)) meetingPayload.meeting_url = nextMeetingUrl;
+            if (nextScheduledAt !== (meeting.scheduled_at ?? null)) meetingPayload.scheduled_at = nextScheduledAt;
 
-            if (Object.keys(payload).length === 0) {
+            const currentPolicy = meeting.access_policy ?? {};
+            const policyPayload = {};
+            const nextVisibility = values.visibility || "public";
+            const nextGateRecording = !!values.gate_recording;
+            const nextGateTranscript = !!values.gate_transcript;
+            const nextGateSummary = !!values.gate_summary;
+
+            if (nextVisibility !== (currentPolicy.visibility ?? "public")) policyPayload.visibility = nextVisibility;
+            if (nextGateRecording !== !!currentPolicy.gate_recording) policyPayload.gate_recording = nextGateRecording;
+            if (nextGateTranscript !== !!currentPolicy.gate_transcript) policyPayload.gate_transcript = nextGateTranscript;
+            if (nextGateSummary !== !!currentPolicy.gate_summary) policyPayload.gate_summary = nextGateSummary;
+
+            if (Object.keys(meetingPayload).length > 0) {
+                const response = await updateMeeting(projectId, meeting.id, meetingPayload);
+                const updatedMeeting = response?.data ?? response;
+                setMeeting((prev) => ({ ...prev, ...updatedMeeting }));
+            }
+
+            if (Object.keys(policyPayload).length > 0) {
+                const policyResponse = await updateMeetingPolicy(projectId, meeting.id, policyPayload);
+                const updatedPolicy = policyResponse?.data ?? policyResponse;
+                setMeeting((prev) => ({
+                    ...prev,
+                    access_policy: {
+                        ...(prev.access_policy ?? {}),
+                        ...updatedPolicy,
+                    },
+                }));
+            }
+
+            if (Object.keys(meetingPayload).length === 0 && Object.keys(policyPayload).length === 0) {
                 setModalOpen(false);
                 return;
             }
 
-            const response = await updateMeeting(projectId, meeting.id, payload);
-            const updatedMeeting = response?.data ?? response;
-
-            setMeeting((prev) => ({
-                ...prev,
-                ...updatedMeeting,
-                project_name: prev?.project_name || meeting.project_name,
-            }));
             setModalOpen(false);
         } catch (submitError) {
             setServerErrors({
@@ -379,9 +347,32 @@ export default function MeetingDetailPage() {
 
                         <div className="flex items-center gap-3">
                             {activeTab === "Info" && (
-                                <Button onClick={openEditModal} disabled={loading || !!error || !canAttemptEdit}>
-                                    <Edit size={14} /> Edit Meeting
-                                </Button>
+                                <>
+                                    {/* Show Start Button if Status is scheduled */}
+                                    {meeting?.status === 'scheduled' && (
+                                        <Button
+                                            onClick={handlestartRecording}
+                                            disabled={loading || !!error || actionLoading}
+                                        >
+                                            <Play size={14} fill="currentColor" /> Start Meeting
+                                        </Button>
+                                    )}
+
+                                    {/* Show End Button if Status is live */}
+                                    {meeting?.status === 'live' && (
+                                        <Button
+                                            variant="secondary"
+                                            onClick={handleEndMeeting}
+                                            disabled={loading || !!error || actionLoading}
+                                        >
+                                            <Square size={14} fill="currentColor" /> End Meeting
+                                        </Button>
+                                    )}
+
+                                    <Button onClick={openEditModal} disabled={loading || !!error || !canAttemptEdit}>
+                                        <Edit size={14} /> Edit Meeting
+                                    </Button>
+                                </>
                             )}
                         </div>
                     </div>
@@ -592,7 +583,7 @@ export default function MeetingDetailPage() {
                                     <FileText size={44} className="mb-4 opacity-60" />
                                     <p className="text-base font-bold text-white/45">Transcript UI not wired yet</p>
                                     <p className="mt-2 max-w-md text-sm text-white/25">
-                                        The detail endpoint is integrated, but transcript-specific frontend sections still need the artifact fields and actions the backend exposes later.
+                                        The detail endpoint is integrated, but transcript-specific frontend sections still need to be implemented.
                                     </p>
                                 </div>
                             )}
@@ -602,7 +593,7 @@ export default function MeetingDetailPage() {
                                     <Clock size={44} className="mb-4 opacity-60" />
                                     <p className="text-base font-bold text-white/45">Action item UI not wired yet</p>
                                     <p className="mt-2 max-w-md text-sm text-white/25">
-                                        Meeting metadata and participants are now live. Action item sections can be connected once their API contract is ready.
+                                        Meeting metadata and participants are now live. Action item sections can be connected later.
                                     </p>
                                 </div>
                             )}
@@ -615,7 +606,7 @@ export default function MeetingDetailPage() {
                 isOpen={modalOpen}
                 onClose={closeModal}
                 title="Update Meeting"
-                description="Edit the meeting metadata below."
+                description="Edit the meeting details below."
                 size="lg"
             >
                 <Form

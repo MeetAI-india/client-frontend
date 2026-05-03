@@ -308,10 +308,15 @@ export default function MeetingsPage() {
 
     const openCreateModal = () => {
         setServerErrors({});
+        const now = new Date();
+        const formattedNow = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+            .toISOString()
+            .slice(0, 16);
+
         setFormValues((prev) => ({
             project_id: prev.project_id || projects[0]?.id || "",
             title: "",
-            scheduled_at: "",
+            scheduled_at: formattedNow,
             meeting_url: "",
             visibility: "public",
             description: "",
