@@ -29,7 +29,6 @@ import {
     getParticipantRoleMeta,
     formatDateTime,
     toDateTimeLocalValue,
-    resolveMeetingProject
 } from "../constants";
 
 const CREATE_MEETING_FIELDS = [
@@ -896,7 +895,6 @@ const MeetingsTab = forwardRef(function MeetingsTab({ projectId, projectName }, 
                     ) : (
                         <div className="space-y-3 max-h-[360px] overflow-y-auto sidebar-scroll">
                             {participantsList.map((participant) => {
-                                const roleMeta = getParticipantRoleMeta(participant.role);
                                 return (
                                     <div
                                         key={participant.id}

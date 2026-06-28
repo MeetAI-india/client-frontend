@@ -66,6 +66,20 @@ export const EDIT_MEETING_FIELDS = [
     },
 ];
 
+export const ADD_PARTICIPANT_ROLE_FIELDS = [
+    {
+        key: "role",
+        label: "Role",
+        type: "dropdown",
+        required: true,
+        options: [
+            { label: "Viewer", value: "viewer" },
+            { label: "Commenter", value: "commenter" },
+            { label: "Editor", value: "editor" },
+        ],
+    },
+];
+
 // ─────────────────────────────────────────────
 //  Helper Functions
 // ─────────────────────────────────────────────
@@ -141,6 +155,3 @@ export function toDateTimeLocalValue(value) {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
-export async function resolveMeetingProject(meetingId) {
-    return null;
-}

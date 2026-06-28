@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import ReactDOM from "react-dom";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
@@ -13,9 +14,12 @@ import {
     Info,
     Link as LinkIcon,
     Lock,
-    Play, // Added for Start button
+    MoreVertical,
+    Play,
+    Plus,
     Shield,
-    Square, // Added for End button
+    Square,
+    Trash2,
     Users,
 } from "lucide-react";
 
@@ -26,24 +30,27 @@ import Form from "@/components/Form";
 import Modal from "@/components/Modal";
 import TabBar from "@/components/TabBar";
 
-import { getProjects } from "../../projects/api/projects";
+import { getProjects, searchUsers } from "../../projects/api/projects";
 import {
     getMeeting,
     listParticipants,
     updateMeeting,
     updateMeetingPolicy,
-    startRecording, // Added API function
-    stopRecording,  // Added API function
+    startRecording,
+    stopRecording,
+    addParticipant,
+    removeParticipant,
+    changeParticipantRole,
 } from "../api/meeting";
 
 import {
     EDIT_MEETING_FIELDS,
+    ADD_PARTICIPANT_ROLE_FIELDS,
     getStatusMeta,
     getVisibilityMeta,
     getParticipantRoleMeta,
     formatDateTime,
     toDateTimeLocalValue,
-    resolveMeetingProject
 } from "../constants";
 
 export default function MeetingDetailPage() {
@@ -51,9 +58,13 @@ export default function MeetingDetailPage() {
     const location = useLocation();
     const navigate = useNavigate();
     const isSuperAdmin = useSelector((state) => state.auth.user?.is_super_admin === true);
+    const currentUserId = useSelector((state) => state.auth.user?.id);
+
+    const CAN_MANAGE_PARTICIPANTS = ["owner", "admin"];
 
     const [activeTab, setActiveTab] = useState("Info");
     const [projectId, setProjectId] = useState("");
+    const [userRole, setUserRole] = useState("");
     const [meeting, setMeeting] = useState(null);
     const [participants, setParticipants] = useState([]);
 
@@ -67,6 +78,25 @@ export default function MeetingDetailPage() {
     const [formValues, setFormValues] = useState({});
     const [formLoading, setFormLoading] = useState(false);
     const [serverErrors, setServerErrors] = useState({});
+
+    const [addParticipantOpen, setAddParticipantOpen] = useState(false);
+    const [addParticipantValues, setAddParticipantValues] = useState({ role: "viewer" });
+    const [addParticipantLoading, setAddParticipantLoading] = useState(false);
+    const [addParticipantErrors, setAddParticipantErrors] = useState({});
+
+    const [userSearchQuery, setUserSearchQuery] = useState("");
+    const [userSearchResults, setUserSearchResults] = useState([]);
+    const [userSearchLoading, setUserSearchLoading] = useState(false);
+    const [showUserDropdown, setShowUserDropdown] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const userSearchRef = useRef(null);
+
+    const [openActionId, setOpenActionId] = useState(null);
+    const [changeRoleModalOpen, setChangeRoleModalOpen] = useState(false);
+    const [changingUserId, setChangingUserId] = useState(null);
+    const [changeRoleForm, setChangeRoleForm] = useState({ role: "viewer" });
+    const [changeRoleLoading, setChangeRoleLoading] = useState(false);
+    const [changeRoleError, setChangeRoleError] = useState("");
 
     const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
     const projectIdFromNavigation = location.state?.projectId || searchParams.get("projectId") || "";
@@ -120,6 +150,7 @@ export default function MeetingDetailPage() {
                         resolvedProjectId = result.value.project.id;
                         resolvedProjectName = result.value.project.name;
                         resolvedMeetingPreview = result.value.foundMeeting;
+                        setUserRole(result.value.project.user_role || "");
                         break;
                     }
 
@@ -167,12 +198,48 @@ export default function MeetingDetailPage() {
         };
     }, [id, projectIdFromNavigation, projectNameFromNavigation]);
 
+    useEffect(() => {
+        if (!userSearchQuery.trim() || selectedUser) {
+            setUserSearchResults([]);
+            return;
+        }
+        const timer = setTimeout(async () => {
+            setUserSearchLoading(true);
+            try {
+                const res = await searchUsers(userSearchQuery, projectId);
+                let users = Array.isArray(res?.data?.users) ? res.data.users : (Array.isArray(res?.data) ? res.data : []);
+                const existingIds = new Set(participants.map((p) => String(p.user_id)));
+                setUserSearchResults(users.filter((u) => u.id && !existingIds.has(String(u.id)) && String(u.id) !== String(currentUserId)));
+            } catch {
+                setUserSearchResults([]);
+            } finally {
+                setUserSearchLoading(false);
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [userSearchQuery, selectedUser, participants, projectId, currentUserId]);
+
+    useEffect(() => {
+        if (!showUserDropdown) return;
+        const handleClickOutside = (e) => {
+            if (userSearchRef.current && !userSearchRef.current.contains(e.target)) {
+                setShowUserDropdown(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [showUserDropdown]);
+
     const uiStatus = useMemo(() => getStatusMeta(meeting?.status), [meeting?.status]);
     const hasFullPayload = useMemo(
         () => !!meeting && Object.prototype.hasOwnProperty.call(meeting, "access_policy"),
         [meeting]
     );
     const canAttemptEdit = hasFullPayload || isSuperAdmin;
+    const canManageParticipants =
+        isSuperAdmin ||
+        CAN_MANAGE_PARTICIPANTS.includes(userRole) ||
+        meeting?.created_by === currentUserId;
     const visibilityMeta = useMemo(
         () => getVisibilityMeta(meeting?.access_policy?.visibility),
         [meeting?.access_policy?.visibility]
@@ -305,6 +372,90 @@ export default function MeetingDetailPage() {
         }
     };
 
+    const reloadParticipants = async () => {
+        if (!projectId || !id) return;
+        try {
+            const participantsResponse = await listParticipants(projectId, id);
+            setParticipants(Array.isArray(participantsResponse?.data) ? participantsResponse.data : []);
+        } catch (err) {
+            setParticipantsError(err.message || "Failed to load participants.");
+        }
+    };
+
+    const handleAddParticipant = async (values) => {
+        if (!selectedUser || !projectId || !id) {
+            setAddParticipantErrors({ role: "Please select a user from the dropdown." });
+            return;
+        }
+
+        setAddParticipantLoading(true);
+        setAddParticipantErrors({});
+
+        try {
+            await addParticipant(projectId, id, {
+                user_id: selectedUser.id,
+                role: values.role,
+            });
+            closeAddParticipantModal();
+            await reloadParticipants();
+        } catch (err) {
+            const msg =
+                typeof err.message === "string"
+                    ? err.message
+                    : Array.isArray(err.detail)
+                        ? err.detail.map((e) => e.msg || JSON.stringify(e)).join(", ")
+                        : "Failed to add participant.";
+            setAddParticipantErrors({ role: msg });
+        } finally {
+            setAddParticipantLoading(false);
+        }
+    };
+
+    const openAddParticipantModal = () => {
+        setAddParticipantValues({ role: "viewer" });
+        setUserSearchQuery("");
+        setSelectedUser(null);
+        setUserSearchResults([]);
+        setAddParticipantErrors({});
+        setAddParticipantOpen(true);
+    };
+
+    const closeAddParticipantModal = () => {
+        setAddParticipantOpen(false);
+        setUserSearchQuery("");
+        setSelectedUser(null);
+        setUserSearchResults([]);
+        setShowUserDropdown(false);
+    };
+
+    const handleRemoveParticipant = async (participant) => {
+        if (!window.confirm(`Remove "${participant.user_name}" from this meeting?`)) return;
+        try {
+            await removeParticipant(projectId, id, participant.user_id);
+            setParticipants((prev) => prev.filter((p) => p.user_id !== participant.user_id));
+            setOpenActionId(null);
+        } catch (err) {
+            alert(err.message || "Failed to remove participant.");
+        }
+    };
+
+    const handleChangeRole = async () => {
+        setChangeRoleLoading(true);
+        setChangeRoleError("");
+        try {
+            await changeParticipantRole(projectId, id, changingUserId, { role: changeRoleForm.role });
+            setParticipants((prev) =>
+                prev.map((p) => (p.user_id === changingUserId ? { ...p, role: changeRoleForm.role } : p))
+            );
+            setChangeRoleModalOpen(false);
+            setOpenActionId(null);
+        } catch (err) {
+            setChangeRoleError(err.message || "Failed to change role.");
+        } finally {
+            setChangeRoleLoading(false);
+        }
+    };
+
     return (
         <>
             <div className="h-full flex flex-col animate-fade-in">
@@ -348,7 +499,6 @@ export default function MeetingDetailPage() {
                         <div className="flex items-center gap-3">
                             {activeTab === "Info" && (
                                 <>
-                                    {/* Show Start Button if Status is scheduled */}
                                     {meeting?.status === 'scheduled' && (
                                         <Button
                                             onClick={handlestartRecording}
@@ -358,7 +508,6 @@ export default function MeetingDetailPage() {
                                         </Button>
                                     )}
 
-                                    {/* Show End Button if Status is live */}
                                     {meeting?.status === 'live' && (
                                         <Button
                                             variant="secondary"
@@ -373,6 +522,11 @@ export default function MeetingDetailPage() {
                                         <Edit size={14} /> Edit Meeting
                                     </Button>
                                 </>
+                            )}
+                            {activeTab === "Participants" && canManageParticipants && (
+                                <Button onClick={openAddParticipantModal} disabled={loading || !!error}>
+                                    <Plus size={14} /> Add Participant
+                                </Button>
                             )}
                         </div>
                     </div>
@@ -515,9 +669,15 @@ export default function MeetingDetailPage() {
                             )}
 
                             {activeTab === "Participants" && (
-                                <div className="space-y-4 animate-fade-in">
+                                <div className="animate-fade-in flex flex-col min-h-0">
+                                    {!participantsLoading && !participantsError && (
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-4">
+                                            {participants.length} participant{participants.length !== 1 ? "s" : ""}
+                                        </p>
+                                    )}
+
                                     {participantsError && (
-                                        <div className="rounded-2xl border border-red-500/20 bg-red-500/[0.08] p-4 text-sm font-medium text-red-300">
+                                        <div className="rounded-2xl border border-red-500/20 bg-red-500/[0.08] p-4 text-sm font-medium text-red-300 mb-4">
                                             {participantsError}
                                         </div>
                                     )}
@@ -535,44 +695,81 @@ export default function MeetingDetailPage() {
                                             </p>
                                         </div>
                                     ) : (
-                                        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                                            {participants.map((participant) => {
-                                                const roleMeta = getParticipantRoleMeta(participant.role);
-
-                                                return (
-                                                    <Card
-                                                        key={participant.id}
-                                                        className="border-white/5 bg-white/[0.02] p-5"
-                                                    >
-                                                        <div className="flex items-start justify-between gap-4">
-                                                            <div className="min-w-0">
-                                                                <h3 className="truncate text-base font-black tracking-tight text-white">
-                                                                    {participant.user_name}
-                                                                </h3>
-                                                                <p className="mt-1 truncate text-sm text-white/45">
-                                                                    {participant.user_email}
-                                                                </p>
-                                                            </div>
-
-                                                            <Badge variant={roleMeta.variant}>{roleMeta.label}</Badge>
-                                                        </div>
-
-                                                        <div className="mt-4 grid grid-cols-2 gap-3">
-                                                            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3">
-                                                                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-white/30">Invited</p>
-                                                                <p className="mt-2 text-xs text-white/75">{formatDateTime(participant.invited_at, "Unknown")}</p>
-                                                            </div>
-
-                                                            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-3">
-                                                                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-white/30">Status</p>
-                                                                <p className="mt-2 text-xs text-white/75">
-                                                                    {participant.is_active ? "Active participant" : "Inactive"}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                    </Card>
-                                                );
-                                            })}
+                                        <div className="overflow-x-auto rounded-2xl border border-white/[0.08] flex-1 min-h-0">
+                                            <table className="w-full text-sm text-left border-collapse">
+                                                <thead className="text-[10px] uppercase font-black tracking-widest text-white/40 border-b border-white/[0.08] sticky top-0 bg-[#0A0A0A] z-10">
+                                                    <tr>
+                                                        <th className="px-5 py-4">Participant</th>
+                                                        <th className="px-5 py-4">Role</th>
+                                                        <th className="px-5 py-4">Status</th>
+                                                        <th className="px-5 py-4">Invited</th>
+                                                        {canManageParticipants && (
+                                                            <th className="px-5 py-4 text-right">Actions</th>
+                                                        )}
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-white/[0.05]">
+                                                    {participants.map((participant) => {
+                                                        const roleMeta = getParticipantRoleMeta(participant.role);
+                                                        return (
+                                                            <tr
+                                                                key={participant.id}
+                                                                className="hover:bg-white/[0.04] transition-colors group"
+                                                            >
+                                                                <td className="px-5 py-4">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className="w-9 h-9 rounded-xl bg-white/[0.08] border border-white/10 flex items-center justify-center text-sm font-bold text-white group-hover:scale-105 transition-transform duration-300">
+                                                                            {participant.user_name?.charAt(0)?.toUpperCase() || "?"}
+                                                                        </div>
+                                                                        <div>
+                                                                            <div className="font-bold text-white tracking-tight text-sm">
+                                                                                {participant.user_name}
+                                                                            </div>
+                                                                            <div className="text-xs text-white/40 font-medium">
+                                                                                {participant.user_email}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-5 py-4">
+                                                                    <Badge variant={roleMeta.variant}>{roleMeta.label}</Badge>
+                                                                </td>
+                                                                <td className="px-5 py-4">
+                                                                    <Badge variant={participant.is_active ? "success" : "high"}>
+                                                                        {participant.is_active ? "Active" : "Inactive"}
+                                                                    </Badge>
+                                                                </td>
+                                                                <td className="px-5 py-4">
+                                                                    <span className="text-xs text-white/50">
+                                                                        {formatDateTime(participant.invited_at, "Unknown")}
+                                                                    </span>
+                                                                </td>
+                                                                {canManageParticipants && (
+                                                                    <td className="px-5 py-4 text-right">
+                                                                        <ActionMenu
+                                                                            open={openActionId === participant.user_id}
+                                                                            onToggle={() => {
+                                                                                setOpenActionId((curr) => (curr === participant.user_id ? null : participant.user_id));
+                                                                            }}
+                                                                            onChangeRole={() => {
+                                                                                setChangingUserId(participant.user_id);
+                                                                                setChangeRoleForm({ role: participant.role });
+                                                                                setChangeRoleError("");
+                                                                                setChangeRoleModalOpen(true);
+                                                                                setOpenActionId(null);
+                                                                            }}
+                                                                            onRemove={() => {
+                                                                                handleRemoveParticipant(participant);
+                                                                                setOpenActionId(null);
+                                                                            }}
+                                                                        />
+                                                                    </td>
+                                                                )}
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
                                         </div>
                                     )}
                                 </div>
@@ -619,6 +816,178 @@ export default function MeetingDetailPage() {
                     loading={formLoading}
                 />
             </Modal>
+
+            <Modal
+                isOpen={addParticipantOpen}
+                onClose={closeAddParticipantModal}
+                title="Add Participant"
+                description="Search for a user to add them to this meeting."
+            >
+                <div className="space-y-5">
+                    <div className="space-y-1.5" ref={userSearchRef}>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-white/40 flex items-center gap-1.5">
+                            Search & Select User <span className="text-red-400 text-[8px]">●</span>
+                        </label>
+                        <div className="relative">
+                            <input
+                                type="text"
+                                value={userSearchQuery}
+                                onChange={(e) => {
+                                    setUserSearchQuery(e.target.value);
+                                    setShowUserDropdown(true);
+                                    if (selectedUser) {
+                                        setSelectedUser(null);
+                                        setAddParticipantErrors({});
+                                    }
+                                }}
+                                placeholder="Type name or email..."
+                                className="w-full bg-white/[0.05] border border-white/[0.1] rounded-xl py-3 px-4 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/[0.3] focus:bg-white/[0.08] transition-all"
+                            />
+                            {userSearchLoading && (
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                    <div className="w-3.5 h-3.5 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+                                </div>
+                            )}
+                            {showUserDropdown && userSearchResults.length > 0 && (
+                                <div className="absolute top-[calc(100%+4px)] left-0 w-full bg-[#1A1A1A] border border-white/10 rounded-xl overflow-y-auto max-h-48 z-[9999] shadow-2xl py-1.5">
+                                    {userSearchResults.map((u) => (
+                                        <div
+                                            key={u.id}
+                                            onClick={() => {
+                                                setSelectedUser(u);
+                                                setUserSearchQuery(`${u.full_name} (${u.email})`);
+                                                setShowUserDropdown(false);
+                                                setAddParticipantErrors({});
+                                            }}
+                                            className="px-4 py-2.5 hover:bg-white/10 cursor-pointer transition-colors flex items-center gap-3"
+                                        >
+                                            <div className="w-8 h-8 rounded-lg bg-white/[0.08] border border-white/10 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                                                {u.full_name?.charAt(0)?.toUpperCase() || "?"}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="text-xs font-bold text-white truncate">{u.full_name}</div>
+                                                <div className="text-[10px] text-white/40 font-medium truncate">{u.email}</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        {selectedUser && (
+                            <div className="flex items-center gap-3 p-3 bg-white/[0.05] border border-white/10 rounded-xl">
+                                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-xs font-bold text-emerald-400 flex-shrink-0">
+                                    {selectedUser.full_name?.charAt(0)?.toUpperCase() || "?"}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="text-xs font-bold text-white truncate">{selectedUser.full_name}</div>
+                                    <div className="text-[10px] text-white/40 font-medium truncate">{selectedUser.email}</div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <Form
+                        fields={ADD_PARTICIPANT_ROLE_FIELDS}
+                        values={addParticipantValues}
+                        onChange={(key, val) =>
+                            setAddParticipantValues((prev) => ({ ...prev, [key]: val }))
+                        }
+                        onSubmit={handleAddParticipant}
+                        errors={addParticipantErrors}
+                        submitLabel="Add Participant"
+                        loading={addParticipantLoading}
+                    />
+                </div>
+            </Modal>
+
+            <Modal
+                isOpen={changeRoleModalOpen}
+                onClose={() => setChangeRoleModalOpen(false)}
+                title="Change Participant Role"
+                description="Update the role for this participant."
+            >
+                {changeRoleError && (
+                    <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+                        <p className="text-xs text-red-400 font-bold">{changeRoleError}</p>
+                    </div>
+                )}
+                <Form
+                    fields={ADD_PARTICIPANT_ROLE_FIELDS}
+                    values={changeRoleForm}
+                    onChange={(key, val) => setChangeRoleForm((prev) => ({ ...prev, [key]: val }))}
+                    onSubmit={handleChangeRole}
+                    errors={changeRoleError ? { role: changeRoleError } : {}}
+                    submitLabel="Update Role"
+                    loading={changeRoleLoading}
+                />
+            </Modal>
+        </>
+    );
+}
+
+function ActionMenu({ open, onToggle, onChangeRole, onRemove }) {
+    const triggerRef = useRef(null);
+    const menuRef = useRef(null);
+    const [menuStyle, setMenuStyle] = useState({});
+
+    const updatePosition = useCallback(() => {
+        if (!triggerRef.current) return;
+        const rect = triggerRef.current.getBoundingClientRect();
+        setMenuStyle({
+            position: "fixed",
+            right: window.innerWidth - rect.right,
+            top: rect.bottom + 6,
+            zIndex: 9999,
+        });
+    }, []);
+
+    useEffect(() => {
+        if (!open) return;
+        updatePosition();
+        const close = (e) => {
+            if (
+                triggerRef.current && triggerRef.current.contains(e.target)
+            ) return;
+            if (
+                menuRef.current && menuRef.current.contains(e.target)
+            ) return;
+            onToggle();
+        };
+        document.addEventListener("mousedown", close);
+        return () => document.removeEventListener("mousedown", close);
+    }, [open, onToggle, updatePosition]);
+
+    const menu = open && ReactDOM.createPortal(
+        <div ref={menuRef} style={menuStyle} className="min-w-[160px] rounded-xl border border-white/10 bg-[#141414] shadow-2xl overflow-hidden">
+            <button
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={onChangeRole}
+                className="w-full px-4 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-white/60 hover:bg-white/[0.05] hover:text-white flex items-center gap-2.5"
+            >
+                <Shield size={13} /> Change Role
+            </button>
+            <div className="border-t border-white/[0.06]" />
+            <button
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={onRemove}
+                className="w-full px-4 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-red-400/70 hover:bg-red-500/10 hover:text-red-400 flex items-center gap-2.5"
+            >
+                <Trash2 size={13} /> Remove
+            </button>
+        </div>,
+        document.body
+    );
+
+    return (
+        <>
+            <button
+                ref={triggerRef}
+                onClick={onToggle}
+                className="p-2 rounded-lg hover:bg-white/10 text-white/30 hover:text-white transition-colors"
+            >
+                <MoreVertical size={15} />
+            </button>
+            {menu}
         </>
     );
 }
