@@ -79,7 +79,7 @@ export function removeParticipant(projectId, meetingId, userId) {
 
 export function changeParticipantRole(projectId, meetingId, userId, payload) {
     return apiClient(
-        `${getParticipantsPath(projectId, meetingId)}/${userId}/role`,
+        `${getParticipantsPath(projectId, meetingId)}/${userId}`,
         {
             method: "PATCH",
             body: JSON.stringify(payload),
@@ -87,16 +87,16 @@ export function changeParticipantRole(projectId, meetingId, userId, payload) {
     );
 }
 
-// ── Recording (kept simple too) ──────────────────────────────
+// ── Recording ────────────────────────────────────────────────
 
 export function startRecording(projectId, meetingId) {
-    return apiClient(`${getMeetingPath(projectId, meetingId)}/recording/start`, {
+    return apiClient(`${getMeetingPath(projectId, meetingId)}/recording`, {
         method: "POST",
     });
 }
 
 export function stopRecording(projectId, meetingId) {
-    return apiClient(`${getMeetingPath(projectId, meetingId)}/recording/stop`, {
-        method: "POST",
+    return apiClient(`${getMeetingPath(projectId, meetingId)}/recording`, {
+        method: "DELETE",
     });
 }

@@ -17,13 +17,13 @@ export function getProject(projectId) {
 }
 
 export function getOwnedProjects() {
-    return apiClient(`${API_CONFIG.ENDPOINTS.PROJECTS}/mine/owned`, {
+    return apiClient(`${API_CONFIG.ENDPOINTS.PROJECTS}?role=owner`, {
         method: "GET",
     });
 }
 
 export function getAdminProjects() {
-    return apiClient(`${API_CONFIG.ENDPOINTS.PROJECTS}/mine/admin`, {
+    return apiClient(`${API_CONFIG.ENDPOINTS.PROJECTS}?role=admin`, {
         method: "GET",
     });
 }
@@ -51,19 +51,19 @@ export function deleteProject(projectId) {
 }
 
 export function getAllProjects() {
-    return apiClient(`${API_CONFIG.ENDPOINTS.PROJECTS}/all`, {
+    return apiClient(`${API_CONFIG.ENDPOINTS.PROJECTS}?include_deleted=true`, {
         method: "GET",
     });
 }
 
 export function getDeletedProjects() {
-    return apiClient(`${API_CONFIG.ENDPOINTS.PROJECTS}/deleted`, {
+    return apiClient(`${API_CONFIG.ENDPOINTS.PROJECTS}?deleted_only=true`, {
         method: "GET",
     });
 }
 
 export function getDeletedProject(projectId) {
-    return apiClient(`${API_CONFIG.ENDPOINTS.PROJECTS}/deleted/${projectId}`, {
+    return apiClient(`${API_CONFIG.ENDPOINTS.PROJECTS}/${projectId}?deleted=true`, {
         method: "GET",
     });
 }
@@ -96,7 +96,7 @@ export function removeProjectMember(projectId, userId) {
 }
 
 export function changeMemberRole(projectId, userId, payload) {
-    return apiClient(`${API_CONFIG.ENDPOINTS.PROJECTS}/${projectId}/members/${userId}/role`, {
+    return apiClient(`${API_CONFIG.ENDPOINTS.PROJECTS}/${projectId}/members/${userId}`, {
         method: "PATCH",
         body: JSON.stringify(payload),
     });
@@ -124,14 +124,15 @@ export function getMemberPermissions(projectId, userId) {
 }
 
 export function updateMemberPermissions(projectId, userId, payload) {
-    return apiClient(`${API_CONFIG.ENDPOINTS.PROJECTS}/${projectId}/members/${userId}/permissions`, {
-        method: "PUT",
+    return apiClient(`${API_CONFIG.ENDPOINTS.PROJECTS}/${projectId}/members/${userId}`, {
+        method: "PATCH",
         body: JSON.stringify(payload),
     });
 }
 
 export function deleteMemberPermissions(projectId, userId) {
-    return apiClient(`${API_CONFIG.ENDPOINTS.PROJECTS}/${projectId}/members/${userId}/permissions`, {
-        method: "DELETE",
+    return apiClient(`${API_CONFIG.ENDPOINTS.PROJECTS}/${projectId}/members/${userId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ reset_permissions: true }),
     });
 }

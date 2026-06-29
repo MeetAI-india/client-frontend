@@ -8,7 +8,7 @@ export const API_CONFIG = {
         REFRESH: "/auth/refresh",
         LOGOUT: "/auth/logout",
         ME: "/auth/me",
-        PROJECTS: "/project",
+        PROJECTS: "/projects",
         USERS: "/users",
     },
 
