@@ -32,30 +32,7 @@ import { useSelector } from "react-redux";
 
 const PAGE_SIZE = 20;
 
-// ── Custom Scrollbar Styles (injected once) ─────────────────────────────────
-// You can also move these to your global CSS if preferred
-const SCROLLBAR_STYLE = (
-    <style>{`
-        .sidebar-scroll::-webkit-scrollbar {
-            width: 6px;
-        }
-        .sidebar-scroll::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .sidebar-scroll::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 99px;
-        }
-        .sidebar-scroll::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-        /* Firefox */
-        .sidebar-scroll {
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
-        }
-    `}</style>
-);
+// ── (scrollbar styles moved to src/components/scrollbar.css) ────
 
 // ── Page ────────────────────────────────────────────────────────────────────
 
@@ -288,8 +265,6 @@ export default function TeamPage() {
 
     return (
         <>
-            {SCROLLBAR_STYLE}
-
             {/* ── Main Content (no overflow-hidden here) ── */}
             <div className="h-full flex flex-col animate-fade-in">
                 <header className="mb-8 flex justify-between items-end shrink-0">
@@ -632,7 +607,7 @@ export default function TeamPage() {
                         </div>
 
                         {/* ── Scrollable Content ── */}
-                        <div className="flex-1 overflow-y-auto sidebar-scroll px-8 py-8 min-h-0">
+                        <div className="flex-1 overflow-y-auto px-8 py-8 min-h-0">
                             {/* Avatar + Name */}
                             <div className="flex flex-col items-center mb-10">
                                 <div className="w-20 h-20 rounded-2xl bg-white/[0.1] mb-4 flex items-center justify-center text-2xl font-black text-white border border-white/10 shadow-lg">
