@@ -107,10 +107,9 @@ export function searchUsers(query, projectId) {
     const params = new URLSearchParams({
         search: query,
         limit: 10,
-        include_deleted: false,
         project_id: projectId
     });
-    return apiClient(`/users?${params.toString()}`, {
+    return apiClient(`/users/all?${params.toString()}`, {
         method: "GET",
     });
 }
