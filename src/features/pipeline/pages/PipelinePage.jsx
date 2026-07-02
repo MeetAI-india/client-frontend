@@ -77,7 +77,7 @@ export default function PipelinePage() {
         <div className="h-full flex flex-col animate-fade-in">
             <header className="mb-8 flex justify-between items-end">
                 <div>
-                    <h1 className="text-3xl font-black tracking-tight text-white mb-2 underline decoration-white/10 underline-offset-8">
+                    <h1 className="text-xl font-black tracking-tight text-white mb-2 underline decoration-white/10 underline-offset-8">
                         Pipeline
                     </h1>
                     <p className="text-white/40 font-medium">
@@ -140,7 +140,7 @@ export default function PipelinePage() {
                                 </Card>
                             ))}
 
-                            <button className="w-full mt-2 py-3 border border-dashed border-white/20 rounded-2xl text-white/40 text-xs font-bold uppercase tracking-widest hover:bg-white/[0.05] hover:text-white hover:border-white/40 transition-all flex items-center justify-center gap-2">
+                            <button className="w-full mt-2 py-1.5 border border-dashed border-white/20 rounded-2xl text-white/40 text-xs font-bold uppercase tracking-widest hover:bg-white/[0.05] hover:text-white hover:border-white/40 transition-all flex items-center justify-center gap-2">
                                 <Plus size={14} /> Add Node
                             </button>
                         </div>

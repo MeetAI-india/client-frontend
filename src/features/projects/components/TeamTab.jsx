@@ -355,9 +355,9 @@ const TeamTab = forwardRef(({ projectId, canManageMembers, currentUserId }, ref)
                                             <button onClick={(e) => { e.stopPropagation(); setOpenMemberActionId((curr) => (curr === member.user_id ? null : member.user_id)); }} className="p-2 rounded-lg hover:bg-white/[0.08] text-white/30 hover:text-white"><MoreVertical size={15} /></button>
                                             {openMemberActionId === member.user_id && (
                                                 <div className="absolute right-0 top-11 z-20 min-w-[150px] rounded-xl border border-white/10 bg-[#141414] shadow-2xl overflow-hidden">
-                                                    <button onClick={() => { setChangingUserId(member.user_id); setChangeRoleForm({ role: member.role }); setChangeRoleModalOpen(true); setOpenMemberActionId(null); }} className="w-full px-4 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-white/60 hover:bg-white/[0.05] hover:text-white flex items-center gap-2.5"><Shield size={13} /> Change Role</button>
+                                                    <button onClick={() => { setChangingUserId(member.user_id); setChangeRoleForm({ role: member.role }); setChangeRoleModalOpen(true); setOpenMemberActionId(null); }} className="w-full px-3 py-2 text-left text-[11px] font-bold uppercase tracking-widest text-white/60 hover:bg-white/[0.05] hover:text-white flex items-center gap-2.5"><Shield size={13} /> Change Role</button>
                                                     <div className="border-t border-white/[0.06]" />
-                                                    <button onClick={() => handleRemoveMember(member)} className="w-full px-4 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-red-400/80 hover:bg-red-500/[0.08] hover:text-red-300 flex items-center gap-2.5"><UserMinus size={13} /> Remove</button>
+                                                    <button onClick={() => handleRemoveMember(member)} className="w-full px-3 py-2 text-left text-[11px] font-bold uppercase tracking-widest text-red-400/80 hover:bg-red-500/[0.08] hover:text-red-300 flex items-center gap-2.5"><UserMinus size={13} /> Remove</button>
                                                 </div>
                                             )}
                                         </div>
@@ -391,8 +391,8 @@ const TeamTab = forwardRef(({ projectId, canManageMembers, currentUserId }, ref)
 
                                 <div className="flex-1 overflow-y-auto sidebar-scroll px-8 py-8 min-h-0">
                                     <div className="flex flex-col items-center mb-10">
-                                        <div className="w-20 h-20 rounded-2xl bg-white/[0.1] mb-4 flex items-center justify-center text-2xl font-black text-white border border-white/10 shadow-lg">{selectedMember.user_name?.charAt(0)?.toUpperCase() || "?"}</div>
-                                        <h3 className="text-xl font-black text-white tracking-tight">{selectedMember.user_name}</h3>
+                                        <div className="w-12 h-12 rounded-xl bg-white/[0.1] mb-3 flex items-center justify-center text-base font-black text-white border border-white/10 shadow-lg">{selectedMember.user_name?.charAt(0)?.toUpperCase() || "?"}</div>
+                                        <h3 className="text-base font-black text-white tracking-tight">{selectedMember.user_name}</h3>
                                         <div className="flex items-center gap-2 mt-2">
                                             <Badge variant={selectedMember.is_active ? "success" : "high"}>{selectedMember.is_active ? "Active" : "Inactive"}</Badge>
                                             {selectedMember.user_id === currentUserId && <span className="text-[9px] font-bold text-white/30 border border-white/10 px-1.5 py-0.5 rounded-md uppercase">You</span>}

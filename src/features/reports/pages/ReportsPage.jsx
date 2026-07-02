@@ -12,7 +12,7 @@ export default function ReportsPage() {
         <div className="space-y-12 max-w-6xl animate-in fade-in slide-in-from-bottom-4 duration-700">
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-4xl font-black tracking-tight text-foreground uppercase italic leading-none mb-3">Intelligence<br />Reports</h1>
+                    <h1 className="text-xl font-black tracking-tight text-foreground uppercase italic leading-none mb-3">Intelligence<br />Reports</h1>
                     <p className="text-sm text-muted-foreground font-medium tracking-wide">Automated data synthesis and performance metrics.</p>
                 </div>
                 <button className="px-8 py-4 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-white/90 transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)] active:scale-95 flex items-center gap-3">
@@ -38,7 +38,7 @@ export default function ReportsPage() {
 
                 <div className="bg-white/5 border border-white/10 rounded-[40px] p-10 backdrop-blur-md flex flex-col justify-center">
                     <p className="text-[10px] uppercase font-black text-muted-foreground tracking-[0.3em] mb-4">Storage Integrity</p>
-                    <p className="text-5xl font-black text-foreground tracking-tighter mb-2">99.8%</p>
+                    <p className="text-2xl font-black text-foreground tracking-tighter mb-2">99.8%</p>
                     <p className="text-xs text-muted-foreground font-medium">All systems operational.</p>
                 </div>
             </div>

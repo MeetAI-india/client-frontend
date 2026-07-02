@@ -470,7 +470,7 @@ export default function MeetingDetailPage() {
                     <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                         <div className="min-w-0">
                             <div className="mb-3 flex flex-wrap items-center gap-3">
-                                <h1 className="truncate text-3xl font-black tracking-tight text-white">
+                                <h1 className="truncate text-xl font-black tracking-tight text-white">
                                     {loading ? "Loading..." : meeting?.title ?? "Meeting"}
                                 </h1>
                                 {!loading && !error && <Badge variant={uiStatus.variant}>{uiStatus.label}</Badge>}
@@ -962,7 +962,7 @@ function ActionMenu({ open, onToggle, onChangeRole, onRemove }) {
             <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={onChangeRole}
-                className="w-full px-4 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-white/60 hover:bg-white/[0.05] hover:text-white flex items-center gap-2.5"
+                className="w-full px-3 py-2 text-left text-[11px] font-bold uppercase tracking-widest text-white/60 hover:bg-white/[0.05] hover:text-white flex items-center gap-2.5"
             >
                 <Shield size={13} /> Change Role
             </button>
@@ -970,7 +970,7 @@ function ActionMenu({ open, onToggle, onChangeRole, onRemove }) {
             <button
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={onRemove}
-                className="w-full px-4 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-red-400/70 hover:bg-red-500/10 hover:text-red-400 flex items-center gap-2.5"
+                className="w-full px-3 py-2 text-left text-[11px] font-bold uppercase tracking-widest text-red-400/70 hover:bg-red-500/10 hover:text-red-400 flex items-center gap-2.5"
             >
                 <Trash2 size={13} /> Remove
             </button>

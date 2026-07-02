@@ -399,7 +399,7 @@ export default function MeetingsPage() {
                 {/* Header */}
                 <header className="mb-8">
                     <div className="flex justify-between items-center mb-2">
-                        <h1 className="text-3xl font-black tracking-tight text-white underline decoration-white/10 underline-offset-8">
+                        <h1 className="text-xl font-black tracking-tight text-white underline decoration-white/10 underline-offset-8">
                             Meetings
                         </h1>
                         <Button onClick={openCreateModal} disabled={projectsLoading || projects.length === 0}>
@@ -446,12 +446,12 @@ export default function MeetingsPage() {
                 {/* Grid */}
                 {(projectsLoading || meetingsLoading) ? (
                     <div className="text-center py-20 bg-white/[0.03] border border-white/10 rounded-[30px]">
-                        <LayoutGrid size={32} className="mx-auto text-white/20 mb-4 animate-pulse" />
+                        <LayoutGrid size={20} className="mx-auto text-white/20 mb-4 animate-pulse" />
                         <p className="text-white/40 font-bold">Loading meetings...</p>
                     </div>
                 ) : (projectsError || meetingsError) ? (
                     <div className="text-center py-20 bg-white/[0.03] border border-red-500/20 rounded-[30px]">
-                        <AlertCircle size={32} className="mx-auto text-red-400/70 mb-4" />
+                        <AlertCircle size={18} className="mx-auto text-red-400/70 mb-4" />
                         <p className="text-red-400 font-bold">{projectsError || meetingsError}</p>
                     </div>
                 ) : filteredMeetings.length > 0 ? (
@@ -497,7 +497,7 @@ export default function MeetingsPage() {
                                                             e.stopPropagation();
                                                             handleDeleteMeeting(meeting);
                                                         }}
-                                                        className="w-full px-4 py-3 text-left text-xs font-bold uppercase tracking-widest text-red-300 transition-colors hover:bg-red-500/10 hover:text-red-200"
+                                                        className="w-full px-3 py-2 text-left text-xs font-bold uppercase tracking-widest text-red-300 transition-colors hover:bg-red-500/10 hover:text-red-200"
                                                     >
                                                         Delete
                                                     </button>
@@ -552,7 +552,7 @@ export default function MeetingsPage() {
                     </div>
                 ) : (
                     <div className="text-center py-20 bg-white/[0.03] border border-white/10 rounded-[30px]">
-                        <LayoutGrid size={32} className="mx-auto text-white/20 mb-4" />
+                        <LayoutGrid size={20} className="mx-auto text-white/20 mb-4" />
                         <p className="text-white/40 font-bold">No meetings found</p>
                     </div>
                 )}

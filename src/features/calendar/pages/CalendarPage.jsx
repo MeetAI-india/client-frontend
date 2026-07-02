@@ -12,9 +12,9 @@ export default function CalendarPage() {
         <div className="space-y-12 max-w-6xl animate-in fade-in slide-in-from-bottom-4 duration-700">
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex items-center gap-6">
-                    <div className="p-5 bg-white/5 rounded-3xl border border-white/10"><CalendarIcon size={32} className="text-foreground" /></div>
+                    <div className="p-5 bg-white/5 rounded-3xl border border-white/10"><CalendarIcon size={20} className="text-foreground" /></div>
                     <div>
-                        <h1 className="text-4xl font-black tracking-tight text-foreground uppercase italic leading-none mb-2">Chronos<br />Timeline</h1>
+                        <h1 className="text-xl font-black tracking-tight text-foreground uppercase italic leading-none mb-2">Chronos<br />Timeline</h1>
                         <p className="text-sm text-muted-foreground font-medium tracking-wide">Syncing 24 units of operational flow.</p>
                     </div>
                 </div>

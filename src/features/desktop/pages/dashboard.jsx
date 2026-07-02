@@ -17,7 +17,7 @@ export default function DashboardPage() {
             {/* 🔥 HEADER */}
             <header>
                 <h1 className="
-                    text-3xl font-black tracking-tight text-white mb-2
+                    text-xl font-black tracking-tight text-white mb-2
                     underline decoration-white/10 underline-offset-8
                 ">
                     Dashboard Overview

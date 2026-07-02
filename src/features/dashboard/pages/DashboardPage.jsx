@@ -13,7 +13,7 @@ export default function DashboardPage() {
         <div className="space-y-8 animate-fade-in">
             {/* Header - Matching Pipeline Header Style */}
             <header className="mb-8">
-                <h1 className="text-3xl font-black tracking-tight text-white mb-2 underline decoration-white/10 underline-offset-8">
+                <h1 className="text-xl font-black tracking-tight text-white mb-2 underline decoration-white/10 underline-offset-8">
                     Overview
                 </h1>
                 <p className="text-white/40 font-medium">
@@ -44,7 +44,7 @@ export default function DashboardPage() {
                                 <p className="text-[10px] uppercase tracking-widest font-bold text-white/40 mb-1">
                                     {stat.label}
                                 </p>
-                                <p className="text-2xl font-black text-white tracking-tight">
+                                <p className="text-lg font-black text-white tracking-tight">
                                     {stat.value}
                                 </p>
                             </div>
@@ -106,7 +106,7 @@ export default function DashboardPage() {
                             </div>
                         ))}
                     </div>
-                    <button className="w-full mt-6 py-3 border border-dashed border-white/20 rounded-2xl text-white/40 text-xs font-bold uppercase tracking-widest hover:bg-white/[0.05] hover:text-white hover:border-white/40 transition-all flex items-center justify-center gap-2">
+                    <button className="w-full mt-6 py-1.5 border border-dashed border-white/20 rounded-2xl text-white/40 text-xs font-bold uppercase tracking-widest hover:bg-white/[0.05] hover:text-white hover:border-white/40 transition-all flex items-center justify-center gap-2">
                         View All Activity
                     </button>
                 </div>

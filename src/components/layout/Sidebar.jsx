@@ -22,10 +22,10 @@ const NAV_GROUPS = [
                 id: "dashboard", name: "Dashboard", path: "/dashboard", icon: LayoutDashboard,
                 sub: [
                     { name: "Overview",  path: "/dashboard", icon: LayoutGrid },
-                    { name: "Reports",   path: "/dashboard", icon: BarChart2,
-                      children: ["Revenue", "Growth", "Team Velocity"] },
-                    { name: "Activity",  path: "/dashboard", icon: Activity,
-                      children: ["Recent", "Timeline"] },
+                    // { name: "Reports",   path: "/dashboard", icon: BarChart2,
+                    //   children: ["Revenue", "Growth", "Team Velocity"] },
+                    // { name: "Activity",  path: "/dashboard", icon: Activity,
+                    //   children: ["Recent", "Timeline"] },
                 ],
             },
             {
@@ -114,7 +114,7 @@ const ALL_ITEMS = NAV_GROUPS.flatMap((g) => g.items);
 
 // ── Tooltip class (reused across rail items) ──────────────────────────────────
 
-const TT = "absolute left-full ml-3 whitespace-nowrap bg-black/90 text-white text-[11px] font-semibold px-2.5 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none translate-x-1 group-hover:translate-x-0 transition-all duration-200 shadow-2xl z-[100]";
+const TT = "absolute top-full left-1/2 mt-0 whitespace-nowrap bg-gray-900/85 backdrop-blur-md border border-white/15 text-white text-[11px] font-semibold px-2.5 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none translate-y-1 group-hover:translate-y-0 transition-all duration-200 shadow-2xl z-[100]";
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -197,11 +197,11 @@ export default function Sidebar() {
             </div>
 
             {/* ── Primary rail ─────────────────────────────────────────── */}
-            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${primaryOpen ? "w-[64px]" : "w-0"}`}>
-                <aside className="w-[64px] h-full flex flex-col bg-white/[0.05] backdrop-blur-[30px] border-r border-white/[0.12]">
+            <div className={`transition-all duration-300 ease-in-out ${primaryOpen ? "w-[64px] overflow-visible" : "w-0 overflow-hidden"}`}>
+                <aside className="w-[64px] h-full flex flex-col bg-white/[0.05] backdrop-blur-[30px] border-r border-white/[0.12] relative z-10">
 
                     {/* Nav groups */}
-                    <nav className="flex-1 py-4 overflow-y-auto no-scrollbar">
+                    <nav className="flex-1 py-4">
                         {NAV_GROUPS.map((group, gi) => (
                             <div key={gi} className={gi > 0 ? "mt-4" : ""}>
 

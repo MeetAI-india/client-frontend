@@ -21,7 +21,7 @@ export default function ContactsPage() {
             <div className={`flex-1 flex flex-col transition-all duration-300 ${selectedContact ? 'pr-[420px]' : ''}`}>
                 <header className="mb-8 flex justify-between items-end">
                     <div>
-                        <h1 className="text-3xl font-black tracking-tight text-white mb-2 underline decoration-white/10 underline-offset-8">
+                        <h1 className="text-xl font-black tracking-tight text-white mb-2 underline decoration-white/10 underline-offset-8">
                             Contacts & Leads
                         </h1>
                         <p className="text-white/40 font-medium">
@@ -40,10 +40,10 @@ export default function ContactsPage() {
                         <input
                             type="text"
                             placeholder="Search contacts..."
-                            className="w-full bg-white/[0.05] border border-white/[0.1] rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/[0.25] focus:bg-white/[0.08] transition-all"
+                            className="w-full bg-white/[0.05] border border-white/[0.1] rounded-xl py-2 pl-10 pr-4 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/[0.25] focus:bg-white/[0.08] transition-all"
                         />
                     </div>
-                    <button className="px-4 py-3 bg-white/[0.05] border border-white/[0.1] rounded-xl flex items-center gap-2 text-white/60 hover:text-white hover:bg-white/[0.08] transition-all">
+                    <button className="px-3 py-1.5 bg-white/[0.05] border border-white/[0.1] rounded-xl flex items-center gap-2 text-white/60 hover:text-white hover:bg-white/[0.08] transition-all">
                         <Filter size={16} />
                         <span className="text-xs font-bold uppercase tracking-widest">Filter</span>
                     </button>
@@ -110,10 +110,10 @@ export default function ContactsPage() {
                         </div>
 
                         <div className="flex flex-col items-center mb-8">
-                            <div className="w-20 h-20 rounded-2xl bg-white/[0.1] mb-4 flex items-center justify-center text-2xl font-black text-white border border-white/10 shadow-lg">
+                            <div className="w-12 h-12 rounded-xl bg-white/[0.1] mb-3 flex items-center justify-center text-base font-black text-white border border-white/10 shadow-lg">
                                 {selectedContact.name.charAt(0)}
                             </div>
-                            <h3 className="text-xl font-black text-white tracking-tight">{selectedContact.name}</h3>
+                            <h3 className="text-base font-black text-white tracking-tight">{selectedContact.name}</h3>
                             <p className="text-sm text-white/50 font-bold mt-1">{selectedContact.role} at {selectedContact.company}</p>
                         </div>
 

@@ -14,7 +14,7 @@ export default function SettingsPage() {
     return (
         <div className="space-y-8 animate-fade-in">
             <header className="mb-8">
-                <h1 className="text-3xl font-black tracking-tight text-white mb-2 underline decoration-white/10 underline-offset-8">
+                <h1 className="text-xl font-black tracking-tight text-white mb-2 underline decoration-white/10 underline-offset-8">
                     Settings
                 </h1>
                 <p className="text-white/40 font-medium">
@@ -22,23 +22,23 @@ export default function SettingsPage() {
                 </p>
             </header>
 
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
                 {sections.map((s) => (
                     <Card
                         key={s.id}
-                        className="p-5"
+                        className="p-4"
                         onClick={() => { }}
                     >
                         <div className="relative z-10 flex items-center gap-5">
-                            <div className="w-12 h-12 bg-white/[0.08] border border-white/10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                                <s.icon size={22} className="text-white/80" />
+                            <div className="w-9 h-9 bg-white/[0.08] border border-white/10 rounded-lg flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                                <s.icon size={15} className="text-white/80" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <h3 className="font-bold text-white mb-1 leading-tight">{s.label}</h3>
-                                <p className="text-xs text-white/50">{s.desc}</p>
+                                <h3 className="text-sm font-bold text-white mb-0.5 leading-tight">{s.label}</h3>
+                                <p className="text-xs text-white/40">{s.desc}</p>
                             </div>
                             <div className="text-white/30 group-hover:text-white/60 group-hover:translate-x-1 transition-all flex-shrink-0">
-                                <Zap size={18} />
+                                <Zap size={14} />
                             </div>
                         </div>
                     </Card>
@@ -55,7 +55,7 @@ export default function SettingsPage() {
                                 This action is irreversible
                             </p>
                         </div>
-                        <button className="px-5 py-2 bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold rounded-xl hover:bg-red-500 hover:text-white transition-all uppercase tracking-widest">
+                        <button className="px-3 py-1.5 bg-red-500/20 border border-red-500/30 text-red-400 text-[11px] font-bold rounded-lg hover:bg-red-500 hover:text-white transition-all uppercase tracking-widest">
                             Delete Account
                         </button>
                     </div>

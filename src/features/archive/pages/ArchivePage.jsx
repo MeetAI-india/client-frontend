@@ -12,7 +12,7 @@ export default function ArchivePage() {
         <div className="space-y-12 max-w-6xl animate-in fade-in slide-in-from-bottom-4 duration-700">
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-4xl font-black tracking-tight text-foreground uppercase italic leading-none mb-3">Historical<br />Archive</h1>
+                    <h1 className="text-xl font-black tracking-tight text-foreground uppercase italic leading-none mb-3">Historical<br />Archive</h1>
                     <p className="text-sm text-muted-foreground font-medium tracking-wide">Secure vault of all legacy operations and sessions.</p>
                 </div>
                 <div className="flex items-center gap-4">
