@@ -1,5 +1,6 @@
-import { API_CONFIG } from "../config/api";
+import { API_CONFIG, USE_BACKEND } from "../config/api";
 import { getCSRFToken } from "../config/csrf";
+import { mockApiClient } from "./mock-api";
 
 let isRefreshing = false;
 let refreshPromise = null;
@@ -23,6 +24,8 @@ async function refreshToken() {
 }
 
 export async function apiClient(endpoint, options = {}, retry = true) {
+    if (!USE_BACKEND) return mockApiClient(endpoint, options);
+
     const url = `${API_CONFIG.BASE_URL}${endpoint}`;
 
     const isAuthEndpoint =

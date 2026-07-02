@@ -1,6 +1,8 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { loginApi } from "../features/auth/api/login";
 import { getMe } from "../features/auth/api/me";
+import { USE_BACKEND } from "../config/api";
+import { resetSession } from "../config/dummy-db";
 
 export const loginUser = createAsyncThunk(
     "auth/loginUser",
@@ -38,6 +40,7 @@ const authSlice = createSlice({
     reducers: {
         logout(state) {
             state.user = null;
+            if (!USE_BACKEND) resetSession();
         },
     },
     extraReducers: (builder) => {

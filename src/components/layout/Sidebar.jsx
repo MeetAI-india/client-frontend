@@ -2,13 +2,13 @@ import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import {
-    LayoutDashboard, FolderKanban, Settings, LogOut,
+    LayoutDashboard, Settings, LogOut,
     ChevronLeft, ChevronRight, ChevronDown, ChevronUp,
     Users, Clock, Activity, Video, Briefcase,
-    LayoutGrid, BarChart2, Layers, DollarSign, FolderOpen,
+    LayoutGrid, BarChart2, Layers, FolderOpen,
     Filter, Archive, ClipboardList, UserCheck, AlertCircle,
-    CalendarDays, PlayCircle, TrendingUp, FileBarChart,
-    Zap, Shield, User, Lock, Bell, Key, GitBranch,
+    CalendarDays, PlayCircle,
+    Shield, User, Lock, Bell, Key,
 } from "lucide-react";
 import { logout } from "../../stores/authSlice";
 
@@ -38,15 +38,6 @@ const NAV_GROUPS = [
                 ],
             },
             {
-                id: "pipeline", name: "Pipeline", path: "/pipeline", icon: FolderKanban,
-                sub: [
-                    { name: "Board View", path: "/pipeline", icon: LayoutGrid },
-                    { name: "Stages",     path: "/pipeline", icon: GitBranch,
-                      children: ["Lead", "Qualified", "Proposal", "Closed Won"] },
-                    { name: "Deals",      path: "/pipeline", icon: DollarSign },
-                ],
-            },
-            {
                 id: "projects", name: "Projects", path: "/projects", icon: Briefcase,
                 sub: [
                     { name: "All Projects", path: "/projects", icon: FolderOpen },
@@ -71,15 +62,6 @@ const NAV_GROUPS = [
                     { name: "Upcoming",     path: "/meetings", icon: Clock },
                     { name: "Recordings",   path: "/meetings", icon: PlayCircle,
                       children: ["Videos", "Transcripts", "Highlights"] },
-                ],
-            },
-            {
-                id: "analytics", name: "Analytics", path: "/analytics", icon: Activity,
-                sub: [
-                    { name: "Overview", path: "/analytics", icon: TrendingUp },
-                    { name: "Reports",  path: "/analytics", icon: FileBarChart,
-                      children: ["Sales Funnel", "Team Performance", "Deal Velocity"] },
-                    { name: "Insights", path: "/analytics", icon: Zap },
                 ],
             },
         ],

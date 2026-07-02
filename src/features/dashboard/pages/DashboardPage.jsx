@@ -1,12 +1,12 @@
 import React from "react";
-import { TrendingUp, Users, DollarSign, Activity, Target } from "lucide-react";
+import { Briefcase, Users, Video, CalendarCheck } from "lucide-react";
 
 export default function DashboardPage() {
     const stats = [
-        { label: "Total Revenue", value: "$424,500", icon: DollarSign, trend: "+14%" },
-        { label: "Active Leads", value: "1,240", icon: Users, trend: "+5%" },
-        { label: "Conversion Rate", value: "24.5%", icon: Target, trend: "+2.1%" },
-        { label: "Avg Deal Size", value: "$12,400", icon: Activity, trend: "-1%" },
+        { label: "Total Projects", value: "5", icon: Briefcase, trend: "+2" },
+        { label: "Active Meetings", value: "3", icon: Video, trend: "+1" },
+        { label: "Team Members", value: "6", icon: Users, trend: "+2" },
+        { label: "Meetings This Week", value: "4", icon: CalendarCheck, trend: "-1" },
     ];
 
     return (
@@ -17,7 +17,7 @@ export default function DashboardPage() {
                     Overview
                 </h1>
                 <p className="text-white/40 font-medium">
-                    MeetAi CRM - Monitor your meetings and project.
+                    MeetAi - Monitor your projects and meetings.
                 </p>
             </header>
 
@@ -57,18 +57,18 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Main Graph - Using Pipeline Column Container Style */}
                 <div className="lg:col-span-2 bg-white/[0.03] border border-white/[0.1] rounded-[30px] p-5 transition-colors">
-                    <h3 className="font-black text-white text-lg tracking-tight mb-6">Revenue Trends</h3>
+                    <h3 className="font-black text-white text-lg tracking-tight mb-6">Meeting Activity</h3>
                     <div className="h-64 w-full flex items-end justify-between gap-3 px-2">
-                        {[40, 70, 45, 90, 65, 80, 100].map((h, i) => (
+                        {[2, 4, 1, 5, 3, 0, 1].map((h, i) => (
                             <div key={i} className="w-full relative group flex justify-center">
                                 <div
                                     className="w-full max-w-[48px] bg-white/[0.08] border border-white/20 rounded-t-xl transition-all duration-300 group-hover:bg-white/[0.15]"
-                                    style={{ height: `${h}%` }}
+                                    style={{ height: `${Math.max(h * 18, 4)}%` }}
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-t-xl" />
                                 </div>
                                 <div className="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-xs py-1 px-2 rounded font-bold pointer-events-none">
-                                    ${h}k
+                                    {h} meetings
                                 </div>
                             </div>
                         ))}
@@ -85,10 +85,10 @@ export default function DashboardPage() {
                     </h3>
                     <div className="space-y-5">
                         {[
-                            { title: "Deal won: Enterprise Corp", time: "2h ago", type: "success" },
-                            { title: "New lead: Sarah Jenkins", time: "4h ago", type: "info" },
-                            { title: "Proposal sent to XYZ", time: "5h ago", type: "warning" },
-                            { title: "Follow-up meeting set", time: "1d ago", type: "info" }
+                            { title: "Meeting completed: Kickoff Sync", time: "2h ago", type: "success" },
+                            { title: "New project created: Mobile App v2", time: "4h ago", type: "info" },
+                            { title: "Member added to Website Revamp", time: "5h ago", type: "info" },
+                            { title: "Meeting scheduled: Design Review", time: "1d ago", type: "info" }
                         ].map((act, i) => (
                             <div key={i} className="flex gap-4 items-start group">
                                 <div className="relative mt-1">
