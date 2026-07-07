@@ -1,116 +1,74 @@
 import React, { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import {
-    LayoutDashboard, FolderKanban, Settings, LogOut,
+    LayoutDashboard, Settings, LogOut,
     ChevronLeft, ChevronRight, ChevronDown, ChevronUp,
-    Users, Clock, Activity, Video, Briefcase,
-    LayoutGrid, BarChart2, Layers, DollarSign, FolderOpen,
-    Filter, Archive, ClipboardList, UserCheck, AlertCircle,
-    CalendarDays, PlayCircle, TrendingUp, FileBarChart,
-    Zap, Shield, User, Lock, Bell, Key, GitBranch,
+    Users, Video, Briefcase,
+    LayoutGrid, Layers, FolderOpen,
+    Shield, User, Lock, FileText,
 } from "lucide-react";
 import { logout } from "../../stores/authSlice";
 
 // ── Nav data ──────────────────────────────────────────────────────────────────
 
-const NAV_GROUPS = [
+const NAV_ITEMS = [
     {
-        label: "EXPLORE",
-        items: [
-            {
-                id: "dashboard", name: "Dashboard", path: "/dashboard", icon: LayoutDashboard,
-                sub: [
-                    { name: "Overview",  path: "/dashboard", icon: LayoutGrid },
-                    // { name: "Reports",   path: "/dashboard", icon: BarChart2,
-                    //   children: ["Revenue", "Growth", "Team Velocity"] },
-                    // { name: "Activity",  path: "/dashboard", icon: Activity,
-                    //   children: ["Recent", "Timeline"] },
-                ],
-            },
-            {
-                id: "contacts", name: "Contacts", path: "/contacts", icon: Users,
-                sub: [
-                    { name: "All Contacts", path: "/contacts", icon: Users },
-                    { name: "Segments",     path: "/contacts", icon: Layers,
-                      children: ["Leads", "Clients", "Inactive"] },
-                    { name: "History",      path: "/contacts", icon: Clock },
-                ],
-            },
-            {
-                id: "pipeline", name: "Pipeline", path: "/pipeline", icon: FolderKanban,
-                sub: [
-                    { name: "Board View", path: "/pipeline", icon: LayoutGrid },
-                    { name: "Stages",     path: "/pipeline", icon: GitBranch,
-                      children: ["Lead", "Qualified", "Proposal", "Closed Won"] },
-                    { name: "Deals",      path: "/pipeline", icon: DollarSign },
-                ],
-            },
-            {
-                id: "projects", name: "Projects", path: "/projects", icon: Briefcase,
-                sub: [
-                    { name: "All Projects", path: "/projects", icon: FolderOpen },
-                    { name: "By Status",    path: "/projects", icon: Filter,
-                      children: ["In Progress", "On Hold", "Completed"] },
-                    { name: "Archive",      path: "/projects", icon: Archive },
-                ],
-            },
-            {
-                id: "tasks", name: "Tasks", path: "/tasks", icon: Clock,
-                sub: [
-                    { name: "All Tasks",      path: "/tasks", icon: ClipboardList },
-                    { name: "Assigned to Me", path: "/tasks", icon: UserCheck },
-                    { name: "By Priority",    path: "/tasks", icon: AlertCircle,
-                      children: ["High", "Medium", "Low"] },
-                ],
-            },
-            {
-                id: "meetings", name: "Meetings", path: "/meetings", icon: Video,
-                sub: [
-                    { name: "All Meetings", path: "/meetings", icon: CalendarDays },
-                    { name: "Upcoming",     path: "/meetings", icon: Clock },
-                    { name: "Recordings",   path: "/meetings", icon: PlayCircle,
-                      children: ["Videos", "Transcripts", "Highlights"] },
-                ],
-            },
-            {
-                id: "analytics", name: "Analytics", path: "/analytics", icon: Activity,
-                sub: [
-                    { name: "Overview", path: "/analytics", icon: TrendingUp },
-                    { name: "Reports",  path: "/analytics", icon: FileBarChart,
-                      children: ["Sales Funnel", "Team Performance", "Deal Velocity"] },
-                    { name: "Insights", path: "/analytics", icon: Zap },
-                ],
-            },
+        id: "dashboard", name: "Dashboard", path: "/dashboard", icon: LayoutDashboard,
+        sub: [],
+    },
+    {
+        id: "projects", name: "Projects", path: "/projects", icon: Briefcase,
+        sub: [
+            { name: "Projects", path: "/projects", icon: FolderOpen },
+            { name: "Meetings", path: "/meetings", icon: Video,
+              children: [
+                  { name: "Tasks", path: "/meetings/tasks" },
+              ] },
         ],
     },
     {
-        label: "WORKSPACE",
-        items: [
-            {
-                id: "team", name: "Team", path: "/team", icon: Users,
-                sub: [
-                    { name: "Members",      path: "/team", icon: Users },
-                    { name: "Roles",        path: "/team", icon: Shield,
-                      children: ["Admins", "Members", "Viewers"] },
-                    { name: "Activity",     path: "/team", icon: Activity },
-                ],
-            },
-            {
-                id: "settings", name: "Settings", path: "/settings", icon: Settings,
-                sub: [
-                    { name: "Profile",       path: "/settings", icon: User },
-                    { name: "Security",      path: "/settings", icon: Lock,
-                      children: ["Password", "Two-Factor Auth", "Sessions"] },
-                    { name: "Notifications", path: "/settings", icon: Bell },
-                    { name: "API Access",    path: "/settings", icon: Key },
-                ],
-            },
+        id: "team", name: "Team", path: "/team", icon: Users,
+        sub: [
+            { name: "Members", path: "/team", icon: Users },
+            { name: "Roles", path: "/team", icon: Shield },
+        ],
+    },
+    {
+        id: "settings", name: "Settings", path: "/settings", icon: Settings,
+        sub: [
+            { name: "Settings", path: "/settings", icon: Lock },
+            { name: "Profile", path: "/settings/profile", icon: User },
+        ],
+    },
+    {
+        id: "examples", name: "Examples", path: "/examples", icon: FileText,
+        sub: [
+            { name: "UI Kit", path: "/examples/ui-kit", icon: Layers },
+            { name: "Patterns", path: "/examples/patterns", icon: LayoutGrid,
+              children: [
+                  { name: "Loading", path: "/examples/patterns/loading" },
+                  { name: "Empty State", path: "/examples/patterns/empty-state" },
+                  { name: "Error State", path: "/examples/patterns/error-state" },
+              ] },
         ],
     },
 ];
 
-const ALL_ITEMS = NAV_GROUPS.flatMap((g) => g.items);
+const ALL_ITEMS = NAV_ITEMS;
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+const matchesNavItem = (item, pathname) => {
+    if (pathname === item.path) return true;
+    if (item.path !== "/dashboard" && pathname.startsWith(item.path)) return true;
+    return item.sub?.some(s =>
+        pathname === s.path || s.children?.some(c => {
+            const cp = typeof c === "string" ? `${s.path}/${c.toLowerCase().replace(/\s+/g, "-")}` : c.path;
+            return pathname === cp;
+        })
+    );
+};
 
 // ── Tooltip class (reused across rail items) ──────────────────────────────────
 
@@ -124,26 +82,19 @@ export default function Sidebar() {
     const location = useLocation();
 
     const [primaryOpen, setPrimaryOpen] = useState(true);
-    const [panelOpen,   setPanelOpen]   = useState(() => {
-        const p = window.location.pathname;
-        return ALL_ITEMS.some(
-            (n) => p === n.path || (n.path !== "/dashboard" && p.startsWith(n.path))
-        );
-    });
+    const [panelOpen,   setPanelOpen]   = useState(() =>
+        ALL_ITEMS.some((n) => matchesNavItem(n, window.location.pathname))
+    );
     // { sectionId, name } — auto-invalidates when section changes
     const [expandedSub, setExpandedSub] = useState(null);
     const [activeChild, setActiveChild] = useState(null);
 
     // Derived from location — auto-updates on route change
-    const activeItem = ALL_ITEMS.find(
-        (n) =>
-            location.pathname === n.path ||
-            (n.path !== "/dashboard" && location.pathname.startsWith(n.path))
-    );
+    const activeItem = ALL_ITEMS.find((n) => matchesNavItem(n, location.pathname));
 
     // Only valid for the current section
-    const expandedSubName = expandedSub?.sectionId === activeItem?.id ? expandedSub.name : null;
-    const activeChildKey  = activeChild?.sectionId  === activeItem?.id ? activeChild.key  : null;
+    const expandedSubName = expandedSub?.sectionId === activeItem?.id ? expandedSub?.name : null;
+    const activeChildKey  = activeChild?.sectionId  === activeItem?.id ? activeChild?.key  : null;
 
     // ── Handlers ─────────────────────────────────────────────────────────────
 
@@ -162,11 +113,9 @@ export default function Sidebar() {
         }
     };
 
-    const handleCollapse = () => { setPrimaryOpen(false); setPanelOpen(false); };
-
     const handleRestore = () => {
         setPrimaryOpen(true);
-        if (activeItem?.sub?.length) setPanelOpen(true);
+        if ((activeItem?.sub?.length ?? 0) > 1) setPanelOpen(true);
     };
 
     const handleLogout = () => { dispatch(logout()); navigate("/login"); };
@@ -183,7 +132,6 @@ export default function Sidebar() {
     return (
         <div className="flex shrink-0 h-full z-50">
 
-            {/* ── Restore strip (thin tab when fully collapsed) ────────── */}
             <div className={`overflow-hidden transition-all duration-300 ease-in-out ${!primaryOpen ? "w-[18px]" : "w-0"}`}>
                 <div className="w-[18px] h-full flex flex-col items-center pt-[22px] bg-white/[0.03] border-r border-white/[0.08]">
                     <button
@@ -200,46 +148,33 @@ export default function Sidebar() {
             <div className={`transition-all duration-300 ease-in-out ${primaryOpen ? "w-[64px] overflow-visible" : "w-0 overflow-hidden"}`}>
                 <aside className="w-[64px] h-full flex flex-col bg-white/[0.05] backdrop-blur-[30px] border-r border-white/[0.12] relative z-10">
 
-                    {/* Nav groups */}
+                    {/* Nav items */}
                     <nav className="flex-1 py-4">
-                        {NAV_GROUPS.map((group, gi) => (
-                            <div key={gi} className={gi > 0 ? "mt-4" : ""}>
-
-                                {/* Divider before non-first groups */}
-                                {gi > 0 && <div className="mx-3 mb-3 border-t border-white/[0.07]" />}
-
-                                {/* Section label */}
-                                <p className="text-[8px] uppercase tracking-[0.22em] font-black text-white/20 text-center mb-2 select-none">
-                                    {group.label}
-                                </p>
-
-                                <div className="flex flex-col items-center gap-[3px] px-2">
-                                    {group.items.map((item) => {
-                                        const isActive = activeItem?.id === item.id;
-                                        return (
-                                            <button
-                                                key={item.id}
-                                                onClick={() => handleRailClick(item)}
-                                                className={`
-                                                    relative w-full h-11 flex items-center justify-center
-                                                    rounded-xl transition-all duration-200 group border
-                                                    ${isActive
-                                                        ? "bg-white/[0.12] text-white border-white/[0.14] shadow-sm"
-                                                        : "text-white/38 hover:text-white hover:bg-white/[0.07] border-transparent"
-                                                    }
-                                                `}
-                                            >
-                                                <item.icon
-                                                    size={18}
-                                                    className="shrink-0 transition-transform duration-150 group-hover:scale-110"
-                                                />
-                                                <span className={TT}>{item.name}</span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        ))}
+                        <div className="flex flex-col items-center gap-[3px] px-2">
+                            {NAV_ITEMS.map((item) => {
+                                const isActive = activeItem?.id === item.id;
+                                return (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => handleRailClick(item)}
+                                        className={`
+                                            relative w-full h-11 flex items-center justify-center
+                                            rounded-xl transition-all duration-200 group border
+                                            ${isActive
+                                                ? "bg-white/[0.12] text-white border-white/[0.14] shadow-sm"
+                                                : "text-white/38 hover:text-white hover:bg-white/[0.07] border-transparent"
+                                            }
+                                        `}
+                                    >
+                                        <item.icon
+                                            size={18}
+                                            className="shrink-0 transition-transform duration-150 group-hover:scale-110"
+                                        />
+                                        <span className={TT}>{item.name}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </nav>
 
                     {/* Footer */}
@@ -251,19 +186,12 @@ export default function Sidebar() {
                             <LogOut size={17} />
                             <span className={TT}>Logout</span>
                         </button>
-                        <button
-                            onClick={handleCollapse}
-                            className="w-full h-9 flex items-center justify-center rounded-xl text-white/20 hover:text-white/50 hover:bg-white/[0.04] transition-all border border-transparent"
-                            title="Collapse"
-                        >
-                            <ChevronLeft size={13} />
-                        </button>
                     </div>
                 </aside>
             </div>
 
             {/* ── Secondary panel ──────────────────────────────────────── */}
-            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${panelOpen && activeItem ? "w-[220px]" : "w-0"}`}>
+            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${panelOpen && (activeItem?.sub?.length ?? 0) > 1 ? "w-[220px]" : "w-0"}`}>
                 <aside className="w-[220px] h-full flex flex-col bg-white/[0.04] backdrop-blur-[30px] border-r border-white/[0.10]">
 
                     {/* Accordion menu */}
@@ -317,13 +245,13 @@ export default function Sidebar() {
                                         `}>
                                             <div className="ml-8 mt-1 flex flex-col gap-[2px] border-l border-white/[0.08] pl-2 pb-1">
                                                 {sub.children.map((child) => {
-                                                    const isChildActive = activeChildKey === `${sub.name}:${child}`;
+                                                    const isChildActive = activeChildKey === `${sub.name}:${child.name}`;
                                                     return (
                                                         <button
-                                                            key={child}
+                                                            key={child.name}
                                                             onClick={() => {
-                                                                setActiveChild({ sectionId: activeItem?.id, key: `${sub.name}:${child}` });
-                                                                navigate(sub.path);
+                                                                setActiveChild({ sectionId: activeItem?.id, key: `${sub.name}:${child.name}` });
+                                                                navigate(child.path);
                                                             }}
                                                             className={`
                                                                 w-full text-left px-3 py-[7px] rounded-md
@@ -334,7 +262,7 @@ export default function Sidebar() {
                                                                 }
                                                             `}
                                                         >
-                                                            {child}
+                                                            {child.name}
                                                         </button>
                                                     );
                                                 })}
@@ -351,7 +279,7 @@ export default function Sidebar() {
                         <button
                             onClick={() => setPanelOpen(false)}
                             className="
-                                w-full flex items-center gap-2 px-4 py-2.5 rounded-xl
+                                w-full h-11 flex items-center gap-2 px-4 rounded-xl
                                 text-[10px] uppercase tracking-[0.15em] font-black
                                 text-white/22 hover:text-white/55 hover:bg-white/[0.04]
                                 transition-all border border-transparent

@@ -12,7 +12,6 @@ export default function DashboardLayout() {
     const mainRef = useRef(null);
 
     useEffect(() => {
-        document.body.style.overflow = "";
         window.scrollTo({ top: 0, behavior: "auto" });
         mainRef.current?.scrollTo({ top: 0, behavior: "auto" });
     }, [location.pathname]);
