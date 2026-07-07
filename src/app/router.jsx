@@ -16,7 +16,7 @@ const MeetingsPage = lazy(() => import("../features/meetings/pages/MeetingsPage"
 const MeetingDetailPage = lazy(() => import("../features/meetings/pages/MeetingDetailPage"));
 const MeetingTasksPage = lazy(() => import("../features/meetings/pages/MeetingTasksPage"));
 const SettingsPage = lazy(() => import("../features/settings/pages/SettingsPage"));
-const ProfilePage = lazy(() => import("../features/settings/pages/ProfilePage"));
+const ProfilePage = lazy(() => import("../features/auth/pages/ProfilePage"));
 const TeamPage = lazy(() => import("../features/team/pages/TeamPage"));
 const ExamplePage = lazy(() => import("../features/examples/pages/ExamplePage"));
 const UIKitPage = lazy(() => import("../features/examples/pages/UIKitPage"));

@@ -60,19 +60,30 @@ Intelligence-driven meeting tracking and management.
 
 ## 🚀 Development Workflow
 
-### 1. Environment Setup
+### 1. Backend Setup
+Backend is closed source. Run it via Docker (no source access needed): [backend-docker](https://github.com/MeetAI-india/backend-docker)
+
+```bash
+git clone https://github.com/MeetAI-india/backend-docker.git
+cd backend-docker
+export SECRET_KEY=$(openssl rand -hex 32)
+docker compose pull
+docker compose up
+```
+
+### 2. Environment Setup
 Ensure you have the latest environment variables in your `.env` file:
 ```env
 VITE_API_URL=http://localhost:8000
 ```
 
-### 2. Local Development
+### 3. Local Development
 Start the development server with Hot Module Replacement (HMR):
 ```bash
 npm run dev
 ```
 
-### 3. Coding Standards
+### 4. Coding Standards
 - Follow the feature-based structure defined in `project-structure.md`.
 - Use Tailwind CSS for all styling; avoid inline styles.
 - Ensure any new global components are added to the `src/components` directory.
@@ -86,3 +97,4 @@ npm run dev
 - ✅ **Member Permission UI:** Implemented searchable fields for the Add Member modal.
 - ✅ **Dynamic Actions:** Developed logic to update header buttons dynamically based on active project tabs.
 - ✅ **Filters & Navigation:** Added robust project filtering (Archive/Active) and dark mode documentation support.
+- ✅ **Profile Page Relocation:** Moved `ProfilePage.jsx` from `features/settings` to `features/auth`; updated router import and file docs.
