@@ -658,7 +658,7 @@ const MeetingsTab = forwardRef(function MeetingsTab({ projectId, projectName }, 
                         </div>
                     ) : loading ? (
                         <div className="flex flex-col items-center justify-center py-20 text-white/40">
-                            <LayoutGrid className="animate-pulse mb-3" size={32} />
+                            <LayoutGrid className="animate-pulse mb-3" size={20} />
                             <span className="text-xs font-bold uppercase tracking-widest">Loading sessions...</span>
                         </div>
                     ) : filteredMeetings.length === 0 ? (
@@ -763,7 +763,7 @@ const MeetingsTab = forwardRef(function MeetingsTab({ projectId, projectName }, 
                             const meeting = meetings.find((m) => m.id === openActionMenuId);
                             if (meeting) openEditModal(meeting);
                         }}
-                        className="w-full px-4 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-white/70 hover:bg-white/[0.06] hover:text-white flex items-center gap-2.5"
+                        className="w-full px-3 py-2 text-left text-[11px] font-bold uppercase tracking-widest text-white/70 hover:bg-white/[0.06] hover:text-white flex items-center gap-2.5"
                     >
                         <Edit size={13} /> Edit
                     </button>
@@ -772,7 +772,7 @@ const MeetingsTab = forwardRef(function MeetingsTab({ projectId, projectName }, 
                             const meeting = meetings.find((m) => m.id === openActionMenuId);
                             if (meeting) openParticipantsModal(meeting);
                         }}
-                        className="w-full px-4 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-white/70 hover:bg-white/[0.06] hover:text-white flex items-center gap-2.5"
+                        className="w-full px-3 py-2 text-left text-[11px] font-bold uppercase tracking-widest text-white/70 hover:bg-white/[0.06] hover:text-white flex items-center gap-2.5"
                     >
                         <Users size={13} /> Participants
                     </button>
@@ -781,7 +781,7 @@ const MeetingsTab = forwardRef(function MeetingsTab({ projectId, projectName }, 
                             const meeting = meetings.find((m) => m.id === openActionMenuId);
                             if (meeting) handleDeleteMeeting(meeting);
                         }}
-                        className="w-full px-4 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-red-400 hover:bg-red-500/[0.08] hover:text-red-300 flex items-center gap-2.5"
+                        className="w-full px-3 py-2 text-left text-[11px] font-bold uppercase tracking-widest text-red-400 hover:bg-red-500/[0.08] hover:text-red-300 flex items-center gap-2.5"
                     >
                         <Trash2 size={13} /> Delete
                     </button>
@@ -888,7 +888,7 @@ const MeetingsTab = forwardRef(function MeetingsTab({ projectId, projectName }, 
                         </div>
                     ) : participantsList.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-12 text-center">
-                            <Users size={32} className="text-white/15 mb-3" />
+                            <Users size={20} className="text-white/15 mb-3" />
                             <p className="text-white/40 text-sm font-bold">No explicit participants</p>
                             <p className="text-white/25 text-xs mt-1">Add a participant to grant explicit access.</p>
                         </div>

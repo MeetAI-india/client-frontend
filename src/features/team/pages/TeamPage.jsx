@@ -269,7 +269,7 @@ export default function TeamPage() {
             <div className="h-full flex flex-col animate-fade-in">
                 <header className="mb-8 flex justify-between items-end shrink-0">
                     <div>
-                        <h1 className="text-3xl font-black tracking-tight text-white mb-2 underline decoration-white/10 underline-offset-8">
+                        <h1 className="text-xl font-black tracking-tight text-white mb-2 underline decoration-white/10 underline-offset-8">
                             Team Management
                         </h1>
                         <p className="text-white/40 font-medium">
@@ -293,7 +293,7 @@ export default function TeamPage() {
                             placeholder="Search by name or email..."
                             value={searchInput}
                             onChange={(e) => setSearchInput(e.target.value)}
-                            className="w-full bg-white/[0.05] border border-white/[0.1] rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/[0.25] focus:bg-white/[0.08] transition-all"
+                            className="w-full bg-white/[0.05] border border-white/[0.1] rounded-xl py-2 pl-10 pr-4 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/[0.25] focus:bg-white/[0.08] transition-all"
                         />
                     </div>
 
@@ -301,7 +301,7 @@ export default function TeamPage() {
                     <div className="relative" ref={filterRef}>
                         <button
                             onClick={() => setFilterOpen((prev) => !prev)}
-                            className={`px-4 py-3 border rounded-xl flex items-center gap-2 transition-all ${statusFilter !== null ||
+                            className={`px-3 py-1.5 border rounded-lg flex items-center gap-2 transition-all ${statusFilter !== null ||
                                     adminFilter !== null ||
                                     !includeDeleted
                                     ? "bg-white/[0.1] border-white/[0.25] text-white"
@@ -392,14 +392,14 @@ export default function TeamPage() {
                 <div className="bg-white/[0.03] border border-white/[0.1] rounded-[30px] overflow-hidden flex-1 flex flex-col p-1 min-h-0">
                     {loading ? (
                         <div className="flex-1 flex flex-col items-center justify-center text-white/30">
-                            <Loader2 size={32} className="animate-spin mb-4" />
+                            <Loader2 size={18} className="animate-spin mb-4" />
                             <p className="text-xs font-bold uppercase tracking-widest">
                                 Loading users...
                             </p>
                         </div>
                     ) : error ? (
                         <div className="flex-1 flex flex-col items-center justify-center text-red-400/70">
-                            <AlertCircle size={32} className="mb-4" />
+                            <AlertCircle size={18} className="mb-4" />
                             <p className="text-xs font-bold uppercase tracking-widest">
                                 {error}
                             </p>
@@ -504,7 +504,7 @@ export default function TeamPage() {
 
                                 {users.filter((u) => u.id !== currentUserId).length === 0 && (
                                     <div className="flex flex-col items-center justify-center py-20 text-white/20 font-bold uppercase tracking-widest text-xs">
-                                        <Users size={48} className="mb-4 opacity-20" />
+                                        <Users size={22} className="mb-4 opacity-20" />
                                         {searchTerm || statusFilter !== null || adminFilter !== null
                                             ? "No matches found"
                                             : "No users in your database"}
@@ -610,10 +610,10 @@ export default function TeamPage() {
                         <div className="flex-1 overflow-y-auto px-8 py-8 min-h-0">
                             {/* Avatar + Name */}
                             <div className="flex flex-col items-center mb-10">
-                                <div className="w-20 h-20 rounded-2xl bg-white/[0.1] mb-4 flex items-center justify-center text-2xl font-black text-white border border-white/10 shadow-lg">
+                                <div className="w-12 h-12 rounded-xl bg-white/[0.1] mb-3 flex items-center justify-center text-base font-black text-white border border-white/10 shadow-lg">
                                     {selectedUser.full_name?.charAt(0)?.toUpperCase() || "?"}
                                 </div>
-                                <h3 className="text-xl font-black text-white tracking-tight">
+                                <h3 className="text-base font-black text-white tracking-tight">
                                     {selectedUser.full_name}
                                 </h3>
                                 <p className="text-[10px] text-white/50 font-bold mt-1.5 uppercase tracking-widest">

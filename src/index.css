@@ -89,8 +89,8 @@
     @apply bg-background text-foreground;
   }
 
-  html {
-    @apply font-sans;
+  html, body {
+    @apply font-sans h-full overflow-hidden;
   }
 }
 

@@ -12,7 +12,6 @@ export default function DashboardLayout() {
     const mainRef = useRef(null);
 
     useEffect(() => {
-        document.body.style.overflow = "";
         window.scrollTo({ top: 0, behavior: "auto" });
         mainRef.current?.scrollTo({ top: 0, behavior: "auto" });
     }, [location.pathname]);
@@ -28,20 +27,20 @@ export default function DashboardLayout() {
                     <img src={logo} alt="logo" className="w-8 h-8 object-contain" />
                 </div>
 
-                {/* SEARCH */}
-                <div className="flex-1 px-6 max-w-sm relative group">
-                    <Search className="absolute left-9 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-white" size={15} />
-                    <input
-                        type="text"
-                        placeholder="Search..."
-                        className="w-full bg-white/[0.05] border border-white/[0.10] rounded-full py-2 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-white/[0.20] focus:bg-white/[0.08] transition-colors"
-                    />
-                </div>
-
                 <div className="flex-1" />
 
                 {/* RIGHT */}
                 <div className="flex items-center gap-5 pr-6">
+                    {/* SEARCH */}
+                    <div className="max-w-sm relative group">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-white" size={15} />
+                        <input
+                            type="text"
+                            placeholder="Search..."
+                            className="w-full bg-white/[0.05] border border-white/[0.10] rounded-full py-2 pl-9 pr-4 text-sm text-white focus:outline-none focus:border-white/[0.20] focus:bg-white/[0.08] transition-colors"
+                        />
+                    </div>
+
                     <button className="relative p-2 rounded-full text-white/40 hover:text-white hover:bg-white/[0.06] transition-colors">
                         <Bell size={17} />
                         <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-white rounded-full" />

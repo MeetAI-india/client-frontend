@@ -232,7 +232,7 @@ export default function ProjectDetailPage() {
 
                     <div className="flex justify-between items-start">
                         <div>
-                            <h1 className="text-3xl font-black tracking-tight text-white mb-2 underline decoration-white/10 underline-offset-8">
+                            <h1 className="text-xl font-black tracking-tight text-white mb-2 underline decoration-white/10 underline-offset-8">
                                 {loading ? "Loading project..." : project?.name ?? "Project"}
                             </h1>
                             <p className="text-white/40 font-medium max-w-xl">

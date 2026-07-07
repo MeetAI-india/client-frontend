@@ -9,16 +9,21 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 const LoginPage = lazy(() => import("../features/auth/routes/login"));
 const DashboardLayout = lazy(() => import("../components/layout/DashboardLayout"));
 const DashboardPage = lazy(() => import("../features/dashboard/pages/DashboardPage"));
-const ContactsPage = lazy(() => import("../features/contacts/pages/ContactsPage"));
-const PipelinePage = lazy(() => import("../features/pipeline/pages/PipelinePage"));
 const ProjectsPage = lazy(() => import("../features/projects/pages/ProjectsPage"));
 const ProjectDetailPage = lazy(() => import("../features/projects/pages/ProjectDetailPage"));
 const TasksPage = lazy(() => import("../features/tasks/pages/TasksPage"));
 const MeetingsPage = lazy(() => import("../features/meetings/pages/MeetingsPage"));
 const MeetingDetailPage = lazy(() => import("../features/meetings/pages/MeetingDetailPage"));
-const AnalyticsPage = lazy(() => import("../features/analytics/pages/AnalyticsPage"));
+const MeetingTasksPage = lazy(() => import("../features/meetings/pages/MeetingTasksPage"));
 const SettingsPage = lazy(() => import("../features/settings/pages/SettingsPage"));
+const ProfilePage = lazy(() => import("../features/settings/pages/ProfilePage"));
 const TeamPage = lazy(() => import("../features/team/pages/TeamPage"));
+const ExamplePage = lazy(() => import("../features/examples/pages/ExamplePage"));
+const UIKitPage = lazy(() => import("../features/examples/pages/UIKitPage"));
+const PatternsPage = lazy(() => import("../features/examples/pages/PatternsPage"));
+const PatternLoadingPage = lazy(() => import("../features/examples/pages/PatternLoadingPage"));
+const PatternEmptyStatePage = lazy(() => import("../features/examples/pages/PatternEmptyStatePage"));
+const PatternErrorStatePage = lazy(() => import("../features/examples/pages/PatternErrorStatePage"));
 
 
 const LoadingFallback = () => (
@@ -50,16 +55,21 @@ export default function AppRouter() {
                     <Route element={<ProtectedRoute />}>
                         <Route element={<DashboardLayout />}>
                             <Route path="/dashboard" element={<DashboardPage />} />
-                            <Route path="/contacts" element={<ContactsPage />} />
-                            <Route path="/pipeline" element={<PipelinePage />} />
                             <Route path="/projects" element={<ProjectsPage />} />
                             <Route path="/projects/:id" element={<ProjectDetailPage />} />
                             <Route path="/tasks" element={<TasksPage />} />
                             <Route path="/meetings" element={<MeetingsPage />} />
+                            <Route path="/meetings/tasks" element={<MeetingTasksPage />} />
                             <Route path="/meetings/:id" element={<MeetingDetailPage />} />
-                            <Route path="/analytics" element={<AnalyticsPage />} />
                             <Route path="/team" element={<TeamPage />} />
                             <Route path="/settings" element={<SettingsPage />} />
+                            <Route path="/settings/profile" element={<ProfilePage />} />
+                            <Route path="/examples" element={<ExamplePage />} />
+                            <Route path="/examples/ui-kit" element={<UIKitPage />} />
+                            <Route path="/examples/patterns" element={<PatternsPage />} />
+                            <Route path="/examples/patterns/loading" element={<PatternLoadingPage />} />
+                            <Route path="/examples/patterns/empty-state" element={<PatternEmptyStatePage />} />
+                            <Route path="/examples/patterns/error-state" element={<PatternErrorStatePage />} />
 
                         </Route>
                     </Route>
