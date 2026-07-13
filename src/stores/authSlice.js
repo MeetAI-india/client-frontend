@@ -20,7 +20,10 @@ export const signupUser = createAsyncThunk(
     "auth/signupUser",
     async (payload, { rejectWithValue }) => {
         try {
-            const res = await signupApi(payload);
+            await signupApi(payload);
+
+            const res = await getMe();
+
             return res.data;
         } catch (err) {
             return rejectWithValue(err.message);
@@ -72,9 +75,13 @@ const authSlice = createSlice({
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(signupUser.fulfilled, (state) => {
+
+            .addCase(signupUser.fulfilled, (state,action) => {
                 state.loading = false;
+                state.user = action.payload;
+                state.error = null;
             })
+            
             .addCase(signupUser.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;

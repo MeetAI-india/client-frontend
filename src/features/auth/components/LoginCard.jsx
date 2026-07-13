@@ -152,6 +152,21 @@ export default function LoginCard() {
                             {loading ? "Authorizing..." : "Initialize Session"}
                         </Button>
 
+                        {/* Link to signup Page */}
+                        <div className="mt-4 text-center">
+                            <span className="text-sm text-white/60">
+                                Don't have an account?{" "}
+                            </span>
+
+                            <button
+                                type="button"
+                                onClick={() => navigate("/signup")}
+                                className="font-semibold text-white hover:underline"
+                            >
+                                Sign Up
+                            </button>
+                        </div>
+
                     </form>
                 </div>
             </div>

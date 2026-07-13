@@ -125,7 +125,7 @@ export default function SignupCard() {
                 },
             });
 
-            navigate("/login");
+            navigate("/dashboard");
         }
     };
 
