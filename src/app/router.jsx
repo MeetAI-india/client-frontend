@@ -7,6 +7,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 
 // Lazy-loaded UI components
 const LoginPage = lazy(() => import("../features/auth/routes/login"));
+const SignupPage = lazy(() => import("../features/auth/routes/signup"));
 const DashboardLayout = lazy(() => import("../components/layout/DashboardLayout"));
 const DashboardPage = lazy(() => import("../features/dashboard/pages/DashboardPage"));
 const ProjectsPage = lazy(() => import("../features/projects/pages/ProjectsPage"));
@@ -50,6 +51,14 @@ export default function AppRouter() {
                 <Routes>
                     {/* Public Routes */}
                     <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
+                    <Route
+                        path="/signup"
+                        element={
+                            user
+                                ? <Navigate to="/dashboard" replace />
+                                : <SignupPage />
+                        }
+                    />
 
                     {/* Protected Routes */}
                     <Route element={<ProtectedRoute />}>

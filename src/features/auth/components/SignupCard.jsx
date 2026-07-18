@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { loginUser } from "../../../stores/authSlice";
+import { signupUser } from "../../../stores/authSlice";
 import { toast } from "react-toastify";
 
 import Button from "@/components/Button";
@@ -9,7 +9,8 @@ import { Input, PasswordInput } from "@/components/Input";
 import Label from "@/components/Label";
 import logo from "@/assets/logo.png";
 
-export default function LoginCard() {
+export default function SignupCard() {
+    const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
@@ -58,20 +59,72 @@ export default function LoginCard() {
     };
 
     const validate = () => {
-        if (!email) return setErr("Email is required");
-        if (!/\S+@\S+\.\S+/.test(email)) return setErr("Invalid email");
-        if (!password) return setErr("Password is required");
-        if (password.length < 6) return setErr("Minimum 6 characters required");
+        if (!fullName.trim()) {
+            return setErr("Full name is required");
+        }
+
+        if (!email) {
+            return setErr("Email is required");
+        }
+
+        if (!/\S+@\S+\.\S+/.test(email)) {
+            return setErr("Invalid email");
+        }
+
+        if (!password) {
+            return setErr("Password is required");
+        }
+
+        if (password.length < 8 || password.length > 128) {
+            return setErr("Password must be between 8 and 128 characters");
+        }
+
+        if (!/[A-Z]/.test(password)) {
+            return setErr("Password must contain at least one uppercase letter");
+        }
+
+        if (!/[a-z]/.test(password)) {
+            return setErr("Password must contain at least one lowercase letter");
+        }
+
+        if (!/[0-9]/.test(password)) {
+            return setErr("Password must contain at least one number");
+        }
+
+        if (!/[!@#$%^&*(),.?":{}|<>_\-\\[\]\\/+=~`]/.test(password)) {
+            return setErr("Password must contain at least one special character");
+        }
+
         return true;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
         if (!validate()) return;
 
-        const result = await dispatch(loginUser({ email, password }));
+        const result = await dispatch(
+            signupUser({
+                full_name: fullName,
+                email,
+                password,
+            })
+        );
 
         if (result.meta.requestStatus === "fulfilled") {
+            toast.success("Account created successfully!", {
+                toastId: "signup-success",
+                autoClose: 3000,
+                hideProgressBar: true,
+                style: {
+                    background: "rgba(255,255,255,0.08)",
+                    backdropFilter: "blur(30px)",
+                    border: "1px solid rgba(255,255,255,0.15)",
+                    borderRadius: "1rem",
+                    color: "#fff",
+                },
+            });
+
             navigate("/dashboard");
         }
     };
@@ -105,6 +158,21 @@ export default function LoginCard() {
                     </div>
 
                     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+
+                        {/* 👤 Full Name */}
+                        <div className="flex flex-col gap-2">
+                            <Label className="text-[9px] uppercase tracking-widest font-black text-white/40">
+                                full name
+                            </Label>
+
+                            <Input
+                                type="text"
+                                value={fullName}
+                                onChange={(e) => setFullName(e.target.value)}
+                                placeholder="John Doe"
+                                className="bg-white/[0.08] border border-white/10 rounded-xl py-3"
+                            />
+                        </div>
 
                         {/* 📧 Email */}
                         <div className="flex flex-col gap-2">
@@ -149,23 +217,23 @@ export default function LoginCard() {
                                 active:scale-95
                             "
                         >
-                            {loading ? "Authorizing..." : "Initialize Session"}
+                           {loading ? "Creating Account..." : "Create Account"}
                         </Button>
 
-                        {/* Link to signup Page */}
+                        {/* Link to Login Page */}
                         <div className="mt-4 text-center">
-                            <span className="text-sm text-white/60">
-                                Don't have an account?{" "}
-                            </span>
+                        <span className="text-sm text-white/60">
+                            Already have an account?{" "}
+                        </span>
 
-                            <button
-                                type="button"
-                                onClick={() => navigate("/signup")}
-                                className="font-semibold text-white hover:underline"
-                            >
-                                Sign Up
-                            </button>
-                        </div>
+                        <button
+                            type="button"
+                            onClick={() => navigate("/login")}
+                            className="font-semibold text-white hover:underline"
+                        >
+                            Login
+                        </button>
+                    </div>
 
                     </form>
                 </div>

@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { loginApi } from "../features/auth/api/login";
 import { getMe } from "../features/auth/api/me";
+import { signupApi } from "../features/auth/api/signup";
 
 export const loginUser = createAsyncThunk(
     "auth/loginUser",
@@ -8,6 +9,21 @@ export const loginUser = createAsyncThunk(
         try {
             await loginApi(payload);
             const res = await getMe();
+            return res.data;
+        } catch (err) {
+            return rejectWithValue(err.message);
+        }
+    }
+);
+
+export const signupUser = createAsyncThunk(
+    "auth/signupUser",
+    async (payload, { rejectWithValue }) => {
+        try {
+            await signupApi(payload);
+
+            const res = await getMe();
+
             return res.data;
         } catch (err) {
             return rejectWithValue(err.message);
@@ -51,6 +67,22 @@ const authSlice = createSlice({
                 state.user = action.payload;
             })
             .addCase(loginUser.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+
+            .addCase(signupUser.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+
+            .addCase(signupUser.fulfilled, (state,action) => {
+                state.loading = false;
+                state.user = action.payload;
+                state.error = null;
+            })
+            
+            .addCase(signupUser.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             })
