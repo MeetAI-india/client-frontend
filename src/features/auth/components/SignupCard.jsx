@@ -1,60 +1,34 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { signupUser } from "../../../stores/authSlice";
+import { signupUser, clearError } from "../../../stores/authSlice";
 import { toast } from "react-toastify";
-
 import Button from "@/components/Button";
 import { Input, PasswordInput } from "@/components/Input";
 import Label from "@/components/Label";
 import logo from "@/assets/logo.png";
+import Alert from "@/components/Alert";
 
 export default function SignupCard() {
     const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [validationError, setValidationError] = useState("");
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { loading, error } = useSelector((state) => state.auth);
+    const { loading, error: apiError } = useSelector((state) => state.auth);
 
-    useEffect(() => {
-        if (!error) return;
+    // Derive display error during render
+    const displayError = validationError || apiError;
 
-        let message = "Something went wrong";
-
-        if (typeof error === "string") {
-            message = error;
-        } else if (error?.detail) {
-            if (error.detail === "Invalid credentials.") {
-                message = "Wrong email or password";
-            } else {
-                message = error.detail;
-            }
-        } else if (error?.message) {
-            message = error.message;
-        }
-
-        toast.error(message, {
-            toastId: "auth-error",
-            autoClose: 3000,
-            hideProgressBar: true,
-            style: {
-                background: "rgba(255,255,255,0.08)",
-                backdropFilter: "blur(30px)",
-                border: "1px solid rgba(255,255,255,0.15)",
-                borderRadius: "1rem",
-                color: "#fff",
-            },
-        });
-    }, [error]);
+    const clearErrors = () => {
+        if (validationError) setValidationError("");
+        if (apiError) dispatch(clearError());
+    };
 
     const setErr = (msg) => {
-        toast.error(msg, {
-            toastId: "validation-error",
-            autoClose: 3000,
-            hideProgressBar: true,
-        });
+        setValidationError(msg);
         return false;
     };
 
@@ -100,6 +74,8 @@ export default function SignupCard() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        clearErrors();
 
         if (!validate()) return;
 
@@ -159,6 +135,18 @@ export default function SignupCard() {
 
                     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
+                        {displayError && (
+                            <Alert
+                                key={displayError}
+                                variant="error"
+                                dismissible
+                                onClose={clearErrors}
+                                className="mb-2"
+                            >
+                                {displayError}
+                            </Alert>
+                        )}
+
                         {/* 👤 Full Name */}
                         <div className="flex flex-col gap-2">
                             <Label className="text-[9px] uppercase tracking-widest font-black text-white/40">
@@ -168,7 +156,10 @@ export default function SignupCard() {
                             <Input
                                 type="text"
                                 value={fullName}
-                                onChange={(e) => setFullName(e.target.value)}
+                                onChange={(e) => {
+                                    clearErrors();
+                                    setFullName(e.target.value);
+                                }}
                                 placeholder="John Doe"
                                 className="bg-white/[0.08] border border-white/10 rounded-xl py-3"
                             />
@@ -182,7 +173,10 @@ export default function SignupCard() {
                             <Input
                                 type="email"
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                onChange={(e) => {
+                                    clearErrors();
+                                    setEmail(e.target.value);
+                                }}
                                 placeholder="you@meetai.com"
                                 className="bg-white/[0.08] border border-white/10 rounded-xl py-3"
                             />
@@ -195,7 +189,10 @@ export default function SignupCard() {
                             </Label>
                             <PasswordInput
                                 value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                onChange={(e) => {
+                                    clearErrors();
+                                    setPassword(e.target.value);
+                                }}
                                 placeholder="••••••••"
                                 className="bg-white/[0.08] border border-white/10 rounded-xl py-3"
                             />
@@ -217,23 +214,26 @@ export default function SignupCard() {
                                 active:scale-95
                             "
                         >
-                           {loading ? "Creating Account..." : "Create Account"}
+                            {loading ? "Creating Account..." : "Create Account"}
                         </Button>
 
                         {/* Link to Login Page */}
                         <div className="mt-4 text-center">
-                        <span className="text-sm text-white/60">
-                            Already have an account?{" "}
-                        </span>
+                            <span className="text-sm text-white/60">
+                                Already have an account?{" "}
+                            </span>
 
-                        <button
-                            type="button"
-                            onClick={() => navigate("/login")}
-                            className="font-semibold text-white hover:underline"
-                        >
-                            Login
-                        </button>
-                    </div>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    clearErrors();
+                                    navigate("/login");
+                                }}
+                                className="font-semibold text-white hover:underline"
+                            >
+                                Login
+                            </button>
+                        </div>
 
                     </form>
                 </div>

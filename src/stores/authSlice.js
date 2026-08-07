@@ -43,6 +43,20 @@ export const fetchUser = createAsyncThunk(
     }
 );
 
+const normalizeError = (payload) => {
+    if (!payload) return "An unexpected error occurred.";
+    if (typeof payload === "string") return payload;
+    if (typeof payload === "object") {
+        if (payload.detail) {
+            if (payload.detail === "Invalid credentials.") 
+                return "Wrong email or password";
+            return payload.detail;
+        }
+        if (payload.message) return payload.message;
+    }
+    return String(payload);
+};
+
 const authSlice = createSlice({
     name: "auth",
     initialState: {
@@ -55,20 +69,25 @@ const authSlice = createSlice({
         logout(state) {
             state.user = null;
         },
+        clearError(state) {
+            state.error = null;
+        },
     },
     extraReducers: (builder) => {
         builder
 
             .addCase(loginUser.pending, (state) => {
                 state.loading = true;
+                state.error = null;
             })
             .addCase(loginUser.fulfilled, (state, action) => {
                 state.loading = false;
                 state.user = action.payload;
+                state.error = null;
             })
             .addCase(loginUser.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload;
+                state.error = normalizeError(action.payload);
             })
 
             .addCase(signupUser.pending, (state) => {
@@ -76,7 +95,7 @@ const authSlice = createSlice({
                 state.error = null;
             })
 
-            .addCase(signupUser.fulfilled, (state,action) => {
+            .addCase(signupUser.fulfilled, (state, action) => {
                 state.loading = false;
                 state.user = action.payload;
                 state.error = null;
@@ -84,7 +103,7 @@ const authSlice = createSlice({
             
             .addCase(signupUser.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload;
+                state.error = normalizeError(action.payload);
             })
 
             .addCase(fetchUser.pending, (state) => {
@@ -102,5 +121,5 @@ const authSlice = createSlice({
     },
 });
 
-export const { logout } = authSlice.actions;
+export const { logout, clearError } = authSlice.actions;
 export default authSlice.reducer;
