@@ -44,6 +44,7 @@
   - [`src/features/auth/api/me.js`](#file-srcfeaturesauthapimejs)
   - [`src/features/auth/components/LoginCard.jsx`](#file-srcfeaturesauthcomponentslogincardjsx)
   - [`src/features/auth/hooks/useAuth.js`](#file-srcfeaturesauthhooksuseauthjs)
+  - [`src/features/auth/pages/ProfilePage.jsx`](#file-srcfeaturesauthpagesprofilepagejsx)
   - [`src/features/auth/routes/login.jsx`](#file-srcfeaturesauthroutesloginjsx)
 - **Features — Dashboard**
   - [`src/features/dashboard/pages/DashboardPage.jsx`](#file-srcfeaturesdashboardpagesdashboardpagejsx)
@@ -612,6 +613,24 @@
 | Used By                | Not currently imported by any component (available as alternative)                                                                              |
 | What Breaks If Changed | No current impact (unused).                                                                                                                     |
 | Related Files          | `src/features/auth/api/me.js`                                                                                                                   |
+
+---
+
+## File: `src/features/auth/pages/ProfilePage.jsx`
+
+| Field                  | Details                                                                                                                                                        |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| File Name              | `ProfilePage.jsx`                                                                                                                                              |
+| Location               | `/client-frontend/src/features/auth/pages/ProfilePage.jsx`                                                                                                     |
+| Type                   | Page component                                                                                                                                                 |
+| Purpose                | Display the current user's profile (name, email, role, member-since) with an Edit action                                                                      |
+| Summary                | Static card layout: avatar placeholder, name/email header, Edit button (no-op), and a field list (Full Name, Email, Role, Member Since) rendered from a hardcoded array. Not yet wired to real user data or `PATCH /auth/me`. |
+| Key Responsibilities   | Render the profile view UI.                                                                                                                                    |
+| Exports                | Default: `ProfilePage`                                                                                                                                         |
+| Dependencies           | Internal: `src/components/Card`, `src/components/Button`. External: `react`, `lucide-react`.                                                                  |
+| Used By                | `src/app/router.jsx` (route `/settings/profile`)                                                                                                               |
+| What Breaks If Changed | Breaks the profile view route if the default export or route path changes.                                                                                    |
+| Related Files          | `src/app/router.jsx`, `src/features/settings/pages/SettingsPage.jsx`                                                                                          |
 
 ---
 

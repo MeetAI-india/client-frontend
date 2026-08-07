@@ -5,6 +5,7 @@ export const API_CONFIG = {
 
     ENDPOINTS: {
         LOGIN: "/auth/login",
+        SIGNUP: "/auth/signup",
         REFRESH: "/auth/refresh",
         LOGOUT: "/auth/logout",
         ME: "/auth/me",
